@@ -402,7 +402,7 @@ For further information, please see:
   - [Problem installing Vela](./sections/troubleshooting.md#problem-installing-vela)
   - [No matching distribution found for Vela](./sections/troubleshooting.md#no-matching-distribution-found-for-vela)
     - [How to update Python3 package to 3.10 version](./sections/troubleshooting.md#how-to-update-python3-package-to-newer-version)
-  - [Error trying to build on Arm Virtual Hardware](./sections/troubleshooting.md#error-trying-to-build-on-arm-virtual-hardware)
+  - [Error with Python environment](./sections/troubleshooting.md#error-with-python-environment)
   - [Internal Compiler Error](./sections/troubleshooting.md#internal-compiler-error)
   - [Build issues with WSL2](./sections/troubleshooting.md#build-issues-with-wsl2)
 

@@ -9,7 +9,7 @@
   * [Problem installing Vela](#problem-installing-vela)
   * [No matching distribution found for Vela](#no-matching-distribution-found-for-vela)
     * [How to update Python3 package to newer version](#how-to-update-python3-package-to-newer-version)
-  * [Error trying to build on Arm Virtual Hardware](#error-trying-to-build-on-arm-virtual-hardware)
+  * [Error with Python environment](#error-with-python-environment)
   * [Internal Compiler Error](#internal-compiler-error)
   * [Build issues with WSL2](#build-issues-with-wsl2)
   * [Missing libpython when running FVP](#missing-libpython-when-running-fvp)
@@ -228,9 +228,9 @@ b
 
 Next section of the documentation: [Appendix](appendix.md).
 
-## Error trying to build on Arm Virtual Hardware
+## Error with Python environment
 
-If trying to build on Arm Virtual Hardware and you encounter an error similar to the following:
+If trying to build and you encounter an error similar to the following:
 
 ```log
 The virtual environment was not created successfully because ensurepip is not

@@ -105,8 +105,6 @@ Before proceeding, it is *essential* to ensure that the following prerequisites 
   > **Note:** If you have an older version of Python installed (< 3.10) see the
   > [Troubleshooting](./troubleshooting.md#how-to-update-python3-package-to-newer-version)
   > for instruction on how to install and use it.
-  > **Note:** This scenario might be true if you are using an Arm Virtual Hardware instance.
-  > See the troubleshooting link above on how to set up the environment in this case.
 
 - The build system creates a Python virtual environment during the build process. Please make sure that Python virtual
   environment module is installed by running:

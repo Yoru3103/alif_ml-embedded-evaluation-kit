@@ -6,9 +6,6 @@ The aim of this quick start guide is to enable you to run an application quickly
 This documentation assumes that you are using an Arm® *Ethos™-U55* NPU, it is configured to use 128 Multiply-Accumulate units, and is
 sharing SRAM with the Arm® *Cortex®-M55*.
 
-The FVP is also available via Arm Virtual Hardware (AVH) hosted on AWS. This quick start guide can also be executed on an AVH instance
-but requires creation of an AWS account and basic configuration outlined [here](./sections/arm_virtual_hardware.md#getting-started).
-
 To get started quickly, please follow these steps:
 
 1. First, verify that you have installed all of [the required prerequisites](sections/building.md#build-prerequisites).

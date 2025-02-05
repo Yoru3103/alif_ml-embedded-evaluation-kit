@@ -97,9 +97,6 @@ to the home directory of the user: `~/FVP_Corstone_SSE-300`. The installation, t
 executable under `~/FVP_Corstone_SSE-300/model/<OS>_<compiler-version>/` directory. For the example
 below, we assume it is: `~/FVP_Corstone_SSE-300/models/Linux64_GCC-6.4`.
 
-For Arm Virtual Hardware, the installation paths are different (see Arm Virtual Hardware's
-[Useful Links](./arm_virtual_hardware.md#useful-links) section).
-
 > **NOTE**: The commandline arguments for the FVP mentioned below are valid for FVPs (and AVH) for
 > Arm® Corstone™-300, Corstone™-310, Corstone™-315 and Corstone™-320.
 
@@ -154,7 +151,7 @@ The FVP supports many command-line parameters, such as:
   | `mps3_board.uart0.out_file`                       | `mps4_board.uart0.out_file`                                                            | Sets the output file to hold the data written by the UART. Use `'-'` to send all output to `stdout` and is empty by default).                                                                                                                                               |
   | `mps3_board.uart0.shutdown_on_eot`                | `mps4_board.uart0.shutdown_on_eot`                                                     | Shut down the simulation when an `EOT (ASCII 4)` char is transmitted.                                                                                                                                                                                                       |
   | `mps3_board.visualisation.disable-visualisation`  | `mps4_board.visualisation.disable-visualisation`<br/>`vis_hdlcd.disable_visualisation` | Enables, or disables, visualization and is disabled by default.                                                                                                                                                                                                             |
-  | `ethosu.extra_args="--fast"`                      | `mps4_board.subsystem.ethosu.extra_args=="--fast"`                                     | Run the FVP in fast mode.  This is useful for functionally testing your application, but should *not* be used for performance testing.                                                                                                                                      |
+  | `ethosu.extra_args="--fast"`                      | `mps4_board.subsystem.ethosu.extra_args="--fast"`                                      | Run the FVP in fast mode.  This is useful for functionally testing your application, but should *not* be used for performance testing.                                                                                                                                      |
 
   To start the model in `128` mode for *Ethos-U55*:
 
