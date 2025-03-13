@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2021-2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2021-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -41,9 +41,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include("${CMAKE_CURRENT_SOURCE_DIR}/MlekModule.cmake")
 
 project(arm_ml_embedded_evaluation_kit
-        VERSION     24.11.0
-        DESCRIPTION "ARM ML Embedded Evaluation Kit"
-        LANGUAGES   C CXX ASM)
+        VERSION         25.02.0
+        DESCRIPTION     "ARM ML Embedded Evaluation Kit"
+        LANGUAGES       C CXX ASM)
 
 enforce_compiler_version()
 setup_source_generator()

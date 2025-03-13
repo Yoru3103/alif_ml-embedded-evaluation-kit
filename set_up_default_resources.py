@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-#  SPDX-FileCopyrightText:  Copyright 2021-2024 Arm Limited and/or its affiliates <open-source-office@arm.com>
+#  SPDX-FileCopyrightText:  Copyright 2021-2025 Arm Limited
+#  and/or its affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +41,7 @@ from scripts.py.check_update_resources_downloaded import get_md5sum_for_file
 from scripts.py.vela_configs import NpuConfigs, NpuConfig
 
 # Supported version of Python and Vela
-VELA_VERSION = "4.1.0"
+VELA_VERSION = "4.2.0"
 py3_version_minimum = (3, 10)
 
 # If true, install Vela from source using VELA_VERSION as a git branch/tag name

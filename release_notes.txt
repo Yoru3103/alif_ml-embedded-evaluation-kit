@@ -1,3 +1,9 @@
+Changes for 25.02
+    * Support for 25.02 NPU components and dependencies (core-driver, core-platform, Vela 4.2.0, CMSIS-6, CMSIS-DSP, CMSIS-NN and TensorFlow Lite Micro)
+    * Fix for CMSIS-NN usage in TensorFlow Lite Micro. This bug was introduced in Sep 2024
+    * Minor update to generic BSP with `CMSIS_device_header` definition preferred to `CPU_HEADER_FILE`
+    * General documentation updates - removed Arm Virtual Hardware references from documentation.
+
 Changes in 24.11
     * Support for 24.11 NPU components and dependencies (core-driver, core-platform, Vela 4.1.0, CMSIS-6, CMSIS-DSP, CMSIS-NN and TensorFlow Lite Micro).
     * Added support for Arm® Corstone™-320 FVP, which includes Arm® Ethos™-U85 NPU
