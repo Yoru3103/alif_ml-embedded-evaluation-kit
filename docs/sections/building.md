@@ -203,6 +203,11 @@ The build parameters are:
    [CMSIS-6](https://github.com/ARM-software/CMSIS_6.git), [CMSIS-DSP](https://github.com/ARM-software/CMSIS-DSP)
    and [CMSIS-NN](https://github.com/ARM-software/CMSIS-NN.git).
 
+- `CMSIS_DSP_MIN_REQ_SRC_LIST`: Optional boolean parameter that can toggle whether to compile all CMSIS-DSP sources
+   or just a small subset of the whole library. By default, it is set to `ON` to reduce compilation time, but can be
+   set to `OFF` if full DSP functionality is required by additions made within this project, or when this project is
+   used as a dependency.
+
 - `ETHOS_U_NPU_ENABLED`: Sets whether the use of *Ethos-U* NPU is available for the deployment target. By default, this
   is set and therefore application is built with *Ethos-U* NPU supported.
 

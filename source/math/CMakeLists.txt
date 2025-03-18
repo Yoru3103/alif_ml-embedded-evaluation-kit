@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022, 2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2022, 2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -36,7 +36,7 @@ target_link_libraries(arm_math PRIVATE log)
 
 if (${CMAKE_CROSSCOMPILING})
     include(cmsis-dsp)
-    target_link_libraries(arm_math PUBLIC cmsis-dsp)
+    target_link_libraries(arm_math PUBLIC arm::cmsis-dsp)
 endif ()
 
 message(STATUS "*******************************************************")
