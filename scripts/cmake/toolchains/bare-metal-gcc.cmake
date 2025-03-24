@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2021-2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2021-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -73,7 +73,7 @@ endif()
 
 set(${CPU_COMPILE_DEF}              1)
 
-# Warning options
+# Warning options:
 add_compile_options(
     -Wall
     -Wextra
@@ -83,7 +83,7 @@ add_compile_options(
 # General purpose compile options:
 add_compile_options(
     -funsigned-char
-    -fno-function-sections
+    -ffunction-sections
     -fdata-sections
     "$<$<COMPILE_LANGUAGE:CXX>:-fno-unwind-tables;-fno-rtti;-fno-exceptions>")
 
