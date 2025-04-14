@@ -59,10 +59,8 @@ Before starting the setup process, please make sure that you have:
 
 ### Additional reading
 
-This document contains information that is specific to Arm® Ethos™-U55 and Arm® Ethos™-U65 products. Please refer to the following documents
-for additional information:
-
-- ML platform overview: <https://mlplatform.org/>
+This document contains information that is specific to Arm® Ethos™-U55, Arm® Ethos™-U65 and Arm® Ethos™-U85 products.
+Please refer to the following documents for additional information:
 
 - Arm® ML processors technical overview: <https://developer.arm.com/ip-products/processors/machine-learning>
 
@@ -88,7 +86,7 @@ for additional information:
 
 - Arm® ML-Zoo: <https://github.com/ARM-software/ML-zoo/>
 
-- Arm® Ethos-U NPU™ software: <https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u>
+- Arm® Ethos-U NPU™ software: <https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela>
 
 To access Arm documentation online, please visit: <http://developer.arm.com>
 

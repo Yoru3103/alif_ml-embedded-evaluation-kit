@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/main/tools/packgen/schema/manifest.schema.json
 
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022-2024 Arm Limited and/or its affiliates <open-source-office@arm.com>
+#  SPDX-FileCopyrightText: Copyright 2022-2025 Arm Limited and/or its affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ packs:
     description: "ML sample use case APIs derived from ml-embedded-eval-kit"
     vendor: "ARM"
     license: "LICENSE_APACHE_2.0.txt"
-    url: "https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/"
+    url: "https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/tree/main/resources/cmsis-packs"
 
     requirements:
       packages:
@@ -57,18 +57,18 @@ packs:
       - version: "24.8.0"
         date: "2024-09-24"
         description: "24.08.0 release package"
-        url: "https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.24.8.0.pack?h=refs/heads/main"
+        url: "https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.24.8.0.pack"
       - version: "23.2.0"
         date: "2024-05-21"
         description: "23.02.0 release package"
-        url: "https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.23.2.0.pack?h=refs/heads/main"
+        url: "https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.23.2.0.pack"
       - version: "22.8.0-Beta"
         date: "2022-09-29"
         description: "Beta release package"
-        url: "https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.22.8.0-Beta.pack?h=refs/heads/main"
+        url: "https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.22.8.0-Beta.pack"
 
     taxonomy:
-      - attributes: {Cclass: "ML Eval Kit", doc: "https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ml-embedded-evaluation-kit/+/refs/heads/main/Readme.md"}
+      - attributes: {Cclass: "ML Eval Kit", doc: "https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/Readme.md"}
         description: "A collection of end-to-end examples provided by Arm for Arm Cortex-M CPU and Arm Ethos-U NPU targets."
 
     components:

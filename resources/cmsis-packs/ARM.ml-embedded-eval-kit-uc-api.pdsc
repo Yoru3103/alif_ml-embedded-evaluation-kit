@@ -8,7 +8,7 @@
 
   <license>LICENSE_APACHE_2.0.txt</license>
 
-  <url>https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/</url>
+  <url>https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/tree/main/resources/cmsis-packs</url>
 
   <requirements>
     <packages>
@@ -20,13 +20,13 @@
   </requirements>
 
   <releases>
-    <release date="2024-09-24" url="https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.24.8.0.pack?h=refs/heads/main" version="24.8.0">24.08.0 release package</release>
-    <release date="2024-05-21" url="https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.23.2.0.pack?h=refs/heads/main" version="23.2.0">23.02.0 release package</release>
-    <release date="2022-09-29" url="https://git.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit.git/plain/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.22.8.0-Beta.pack?h=refs/heads/main" version="22.8.0-Beta">Beta release package</release>
+    <release date="2024-09-24" url="https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.24.8.0.pack" version="24.8.0">24.08.0 release package</release>
+    <release date="2024-05-21" url="https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.23.2.0.pack" version="23.2.0">23.02.0 release package</release>
+    <release date="2022-09-29" url="https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/resources/cmsis-packs/ARM.ml-embedded-eval-kit-uc-api.22.8.0-Beta.pack" version="22.8.0-Beta">Beta release package</release>
   </releases>
 
   <taxonomy>
-    <description Cclass="ML Eval Kit" doc="https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ml-embedded-evaluation-kit/+/refs/heads/main/Readme.md">A collection of end-to-end examples provided by Arm for Arm Cortex-M CPU and Arm Ethos-U NPU targets.</description>
+    <description Cclass="ML Eval Kit" doc="https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/Readme.md">A collection of end-to-end examples provided by Arm for Arm Cortex-M CPU and Arm Ethos-U NPU targets.</description>
   </taxonomy>
 
   <conditions>

@@ -1,4 +1,4 @@
-#  SPDX-FileCopyrightText: Copyright 2022-2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2022-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -92,7 +92,7 @@ RUN wget "${FVP_BASE_URL}/FVP/Corstone-320/${FVP_320}_${FVP_VER_320}_Linux64.tgz
     rm "${FVP_320}_${FVP_VER_320}_Linux64.tgz"
 
 # Clone the ml-embedded-evaluation-kit repository
-RUN git clone "https://review.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit" ${EVAL_KIT_DIR}
+RUN git clone "https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git" ${EVAL_KIT_DIR}
 
 # Change working directory
 WORKDIR ${EVAL_KIT_DIR}

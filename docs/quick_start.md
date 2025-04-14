@@ -13,7 +13,7 @@ To get started quickly, please follow these steps:
 2. Clone the *Ethos-U* evaluation kit repository:
 
     ```commandline
-    git clone "https://review.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit"
+    git clone "https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git"
     cd ml-embedded-evaluation-kit
     ```
 
@@ -26,12 +26,12 @@ To get started quickly, please follow these steps:
 4. Next, you can use the `build_default` Python script to get the default neural network models, compile them with Vela,
     and then build the project.
 
-    [Vela](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-vela) is an open-source Python tool. Vela
+    [Vela](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela) is an open-source Python tool. Vela
     converts a TensorFlow Lite for Microcontrollers neural network model into an optimized model that can run on an
     embedded system that contains an *Ethos-U* NPU.
 
     It is worth noting that to take full advantage of the capabilities of the NPU, the neural network operators must be
-    [supported by Vela](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-vela/+/HEAD/SUPPORTED_OPS.md).
+    [supported by Vela](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela/-/blob/4.2.0/SUPPORTED_OPS.md).
 
     ```commandline
     python3 ./build_default.py

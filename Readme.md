@@ -70,7 +70,7 @@ To run ML applications on the Cortex-M and Ethos-U NPU:
 2. Clone the *Ethos-U* evaluation kit repository:
 
     ```commandline
-    git clone "https://review.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit"
+    git clone "https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git"
     cd ml-embedded-evaluation-kit
     ```
 
@@ -81,7 +81,7 @@ To run ML applications on the Cortex-M and Ethos-U NPU:
     ```
 
 4. Next, run the `build_default` Python script. It handles the downloading of the neural network models, compiling using 
-[Vela](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-vela), and building the project using CMake.
+[Vela](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela), and building the project using CMake.
 
 ###### Arm compiler
 ````commandline
@@ -153,7 +153,7 @@ python3.10 ./build_default.py
 * Google® TensorFlow™ Lite for Microcontrollers inference engine is used to schedule
   the execution of neural network models
 
-*  The [Ethos-U NPU driver](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-core-driver) is integrated TensorFlow Lite for Microcontrollers
+*  The [Ethos-U NPU driver](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver) is integrated TensorFlow Lite for Microcontrollers
    *  ML operators are delegated to the NPU with CPU fall-back for unsupported operators
    * [CMSIS-NN](https://github.com/ARM-software/CMSIS-NN.git) is used to optimise CPU workload execution with int8 data type
    * Final ML operator fall-back is TensorFlow™ Lite for Microcontrollers' reference kernels
@@ -191,9 +191,9 @@ the [contributors guide](./docs/sections/contributing.md#contributions).
 
 ## Communication
 
-Please, if you want to start public discussion, raise any issues or questions related to this repository, use
-[https://discuss.mlplatform.org/c/ml-embedded-evaluation-kit](https://discuss.mlplatform.org/c/ml-embedded-evaluation-kit/)
-forum.
+Please, if you want to start public discussion, raise any issues or questions related to this repository,
+please create a new GitLab issue here:
+[https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/issues](https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/issues).
 
 ## Inclusive language commitment
 

@@ -1,15 +1,15 @@
 # FAQ
 
 **Q: I'm unable to clone the ML embedded evaluation kit. When I run the command
-`git clone "ssh://review.mlplatform.org:29418/ml/ethos-u/ml-embedded-evaluation-kit"` and get a permission denied
+`git clone "git@git.gitlab.arm.com:artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git"` and get a permission denied
 (publickey) error. What should I do to get the code base?**
 
 **A:**  When cloning the repository, it's recommended to use https protocol command instead of ssh, use:
 
-`git clone "https://review.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit"`
+`git clone "https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git"`
 
 A good starting point to explore the repository is the
-[quick starting guide](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ml-embedded-evaluation-kit/+/HEAD/docs/quick_start.md).
+[quick starting guide](https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/blob/main/docs/quick_start.md).
 
 ----
 
@@ -26,8 +26,8 @@ I get an error `ImportError: No module named pip`, but pip is installed on my ma
 
 **A:** Network or third party repository issues can cause the `build_default` script to fail and leave build environment in a
 broken inconsistent state. Removing the `build` and `resources_downloaded` folders and running the script again may help.
-If the problem persist contact your Arm representative or open a discussion on
-[https://discuss.mlplatform.org/c/ml-embedded-evaluation-kit](https://discuss.mlplatform.org/c/ml-embedded-evaluation-kit/).
+If the problem persist contact your Arm representative or raise an issue at 
+[https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/issues](https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit/-/issues).
 
 ----
 

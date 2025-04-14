@@ -32,7 +32,7 @@ Also, please check that the cmake parameters used match the input requirements o
 
 > **Note:** The Vela tool is not available within this software project. It is a separate Python tool that is available
 > from: <https://pypi.org/project/ethos-u-vela/>. The source code is hosted on
-> <https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-vela/>.
+> <https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela>.
 
 ## NPU configuration mismatch error when running inference
 
@@ -80,7 +80,7 @@ INFO - ARM ML Embedded Evaluation Kit
 If you see following errors when cloning the repository:
 
 - ```log
-   fatal: unable to access 'https://review.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit/':
+   fatal: unable to access 'https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git':
    server certificate verification failed. CAfile: /etc/ssl/certs/ca-certificates.crt CRLfile: none
   ```
 
@@ -92,7 +92,7 @@ If you see following errors when cloning the repository:
   ```
 
 - ```log
-  fatal: unable to access 'https://review.mlplatform.org/ml/ethos-u/ml-embedded-evaluation-kit/':
+  fatal: unable to access 'https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git':
   error:06FFF089:digital envelope routines:CRYPTO_internal:bad key length
   ```
 

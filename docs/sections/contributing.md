@@ -56,13 +56,11 @@ see:
 
 ### Code Reviews
 
-Contributions must go through code review. Code reviews are performed through the
-[mlplatform.org Gerrit server](https://review.mlplatform.org). Contributors need to sign up to this
-Gerrit server with their GitHub account credentials.
-In order to be merged a patch needs to:
+Contributions must go through code review. Code reviews are performed through
+[Arm's GitLab server](https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit.git). Contributors need to sign up to this
+GitLab server with their GitHub account credentials, and request permission to create a project fork.
 
-- get a "+1 Verified" from the pre-commit job.
-- get a "+2 Code-review" from a reviewer, it means the patch has the final approval.
+A project maintainer will review the patch and ensure it passes necessary CI checks before it can be merged.
 
 ### Testing
 

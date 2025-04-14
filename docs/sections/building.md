@@ -195,7 +195,7 @@ The build parameters are:
 
 - `ETHOS_U_NPU_DRIVER_SRC_PATH`: The path to the *Ethos-U* NPU core driver sources. The default value points to the
   `dependencies/core-driver` git submodule. Repository is hosted here:
-  [ethos-u-core-driver](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-core-driver).
+  [ethos-u-core-driver](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver).
 
 - `CMSIS_SRC_PATH`, `CMSIS_DSP_SRC_PATH`, `CMSIS_NN_SRC_PATH`: Paths to the CMSIS sources to be used to build TensorFlow
    Lite Micro library. These parameters are optional and are only valid for Arm® *Cortex®-M* CPU targeted
@@ -339,8 +339,8 @@ Certain third-party sources are required to be present on the development machin
 repository to link against.
 
 1. [TensorFlow Lite Micro repository](https://github.com/tensorflow/tensorflow)
-2. [Ethos-U NPU core driver repository](https://review.mlplatform.org/admin/repos/ml/ethos-u/ethos-u-core-driver)
-3. [Ethos-U NPU core platform repository](https://review.mlplatform.org/admin/repos/ml/ethos-u/ethos-u-core-platform)
+2. [Ethos-U NPU core driver repository](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver)
+3. [Ethos-U NPU core platform repository](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform)
 4. [CMSIS-6](https://github.com/ARM-software/CMSIS_6.git)
 5. [CMSIS-DSP](https://github.com/ARM-software/CMSIS-DSP.git)
 6. [CMSIS-NN](https://github.com/ARM-software/CMSIS-NN.git)
@@ -775,11 +775,11 @@ After compiling, your custom model has now replaced the default one in the appli
 
 > **Note:** This tool is not available within this project. It is a Python tool available from
 > <https://pypi.org/project/ethos-u-vela/>.
-> The source code is hosted on <https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-vela/>.
+> The source code is hosted on <https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela>.
 
 > **Note:** The correct version of Vela should be used and this depends on the versions of software dependencies used
 > or you may encounter issues when trying to run applications on different variants of Ethos-U NPUs.
-> See <https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u> for more details of which versions align.
+> See <https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela> for more details of which versions align.
 
 The Vela compiler is a tool that can optimize a neural network model into a version that can run on an embedded system
 containing an *Ethos-U* NPU.

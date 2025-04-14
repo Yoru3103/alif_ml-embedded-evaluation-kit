@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2021-2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2021-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -32,10 +32,10 @@ assert_defined(TENSORFLOW_LITE_MICRO_BUILD_TYPE)
 
 function(build_tflite_micro_cmake)
     include(FetchContent)
-    set(CORE_SOFTWARE_REPO_URL "https://git.mlplatform.org/ml/ethos-u/ethos-u-core-software.git")
-    set(CORE_SOFTWARE_GIT_REF  "4115f8d2adf7719f3f348c4d3c88dfa0353c48b3")
-    set(TFLM_CMAKE_URL "${CORE_SOFTWARE_REPO_URL}/plain/tflite_micro.cmake?h=${CORE_SOFTWARE_GIT_REF}")
-    set(TFLM_CMAKE_MD5 "7ecf38d4d97d90f42d3709470515f69d")
+    set(CORE_SOFTWARE_REPO_URL "https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-software")
+    set(CORE_SOFTWARE_GIT_REF  "25.02")
+    set(TFLM_CMAKE_URL "${CORE_SOFTWARE_REPO_URL}/-/raw/${CORE_SOFTWARE_GIT_REF}/tflite_micro.cmake?ref_type=tags&inline=false")
+    set(TFLM_CMAKE_MD5 "7ee273b9d993d8552f7d1fc129f276fd")
 
     FetchContent_Declare(TensorFlow_Lite_Micro_CMake_Wrapper
         URL                 ${TFLM_CMAKE_URL}

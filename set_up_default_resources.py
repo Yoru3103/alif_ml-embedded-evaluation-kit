@@ -595,9 +595,8 @@ def set_up_python_venv(
 
     # Make sure to have all the main requirements
     if INSTALL_VELA_FROM_SOURCE:
-        requirements = [
-            f"git+https://review.mlplatform.org/ml/ethos-u/ethos-u-vela.git@{VELA_VERSION}"
-        ]
+        vela_url = "https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela.git"
+        requirements = [f"git+{vela_url}@{VELA_VERSION}"]
     else:
         requirements = [f"ethos-u-vela=={VELA_VERSION}"]
 
