@@ -293,8 +293,9 @@ To run the VSI enabled application, append the command line with the `v_path` ar
 Once the board has booted, the micro SD card is enumerated as a mass storage device. On most systems, this is
 automatically mounted. However, manual mounting is sometimes required.
 
-Also, check for four serial-over-USB ports that are available for use through this connection. On Linux-based machines,
-these would typically be */dev/ttyUSB\<n\>* to */dev/ttyUSB\<n+3\>*.
+Also, check for four serial-over-USB ports that are available for use through this connection. 
+* On Linux-based machines, these would typically be */dev/ttyUSB\<n\>* to */dev/ttyUSB\<n+3\>*.
+* On macOS® machines, these would typically be */dev/tty.usbserial-\<n\>* to */dev/tty.usbserial-\<n+3\>*.
 
 The default configuration for all of them is `115200`, `8/N/1`. So, 15200 Baud, 8 bits, no parity, and one stop bit,
 with no flow control.
@@ -358,10 +359,11 @@ this size, you must use the approach described below.
     however, this is the FPGA SRAM (or BRAM) region instead. This is because the ITCM is only 32kB which cannot
     accommodate the code footprint for our applications.
 
-    Assuming that the micro SD card is mounted at `/media/user/V2M-MPS3/`, we can use:
+    For Linux machines, with the assumption that the micro SD card is mounted at `/media/user/V2M-MPS3/`, we can use:
     ```commandline
     cp -av ./bin/sectors/img_class/* /media/user/V2M-MPS3/SOFTWARE/ && sync
     ```
+    For macOS®, the micro SD card is likely mounted at  `/Volumes/V2M-MPS3`.
 
     Note that the `itcm.bin` (or `bram.bin`) and `ddr.bin` files correspond to the part of the application residing in
     the first and second load region respectively, as defined in the
@@ -374,23 +376,31 @@ this size, you must use the approach described below.
 
    For example, with revision `C` of the MPS3 board hardware, using an application note directory named `AN552`, we can
    replace the `images.txt` file by:
-
     ```commandline
     cp ./bin/sectors/images.txt /media/user/V2M-MPS3/MB/HBI0309C/AN552/images.txt && sync
     ```
 
-> **NOTE**: Make sure the SD card is unmounted correctly after all the files have been copied. For example:
-> ```commandline
-> umount /media/user/V2M-MPS3
-> ```
+   > **NOTE**: Make sure the SD card is unmounted correctly after all the files have been copied. For example:
+    > 
+    > On Linux:
+    > ```commandline
+    > umount /media/user/V2M-MPS3
+    > ```
+    > On macOS®:
+    > ```commandline
+    > diskutil eject /Volumes/V2M-MPS3
+    > ```
+    
 
-3. Open the first serial port available from MPS3. For example, `/dev/ttyUSB0`. This can be typically done using
+3. Open the first serial port available from MPS3. For example, `/dev/ttyUSB0` or `/dev/tty.usbserial-000000`. This can be typically done using
    `minicom`, `screen`, or `Putty` applications. Make sure the configuration is set to 115200 8/N/1 and that the
    flow control setting is switched off:
 
     ```commandline
     minicom --D /dev/ttyUSB0
     ```
+
+    You should see an output similar to:
 
     ```log
     Welcome to minicom 2.7.1
@@ -401,7 +411,7 @@ this size, you must use the approach described below.
     Cmd>
     ```
 
-4. In another terminal, open the second serial port. For example: `/dev/ttyUSB1`:
+4. In another terminal, open the second serial port. For example: `/dev/ttyUSB1` or `/dev/tty.usbserial-000001`:
 
     ```commandline
     minicom --D /dev/ttyUSB1
