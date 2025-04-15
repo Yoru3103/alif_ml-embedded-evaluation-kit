@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2022, 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2025 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -53,12 +53,9 @@ bool hal_platform_init(void);
 void hal_platform_release(void);
 
 /**
- * @brief       Gets user input from the stdin interface.
- * @param[out]  user_input  Pointer to a buffer where the input will be stored.
- * @param[in]   size        Buffer size in bytes.
- * @return      True if successful, false otherwise.
+ * @brief       Wait for any user input from the stdin interface.
  */
-bool hal_get_user_input(char* user_input, int size);
+void hal_await_user_input();
 
 #ifdef __cplusplus
 }

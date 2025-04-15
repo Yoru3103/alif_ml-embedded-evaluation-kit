@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2022, 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2025 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -42,11 +42,12 @@ namespace app {
      **/
     bool RunInference(Model& model, Profiler& profiler);
 
+#ifdef INTERACTIVE_MODE
     /**
-     * @brief           Read input and return as an integer.
-     * @return          Integer value corresponding to the user input.
+     * @brief           Wait for the user to provide any input.
      **/
-    int ReadUserInputAsInt();
+    void AwaitUserInput();
+#endif /* INTERACTIVE_MODE */
 
 #if VERIFY_TEST_OUTPUT
     /**

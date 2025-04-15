@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022, 2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2022, 2024-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -73,7 +73,7 @@ target_link_libraries(${PLATFORM_DRIVERS_TARGET}
     PUBLIC
     log
     platform_pmu
-    stdout
+    stdout_iface
     lcd_stubs
     hal_audio_static_streams
     hal_camera_static_images)

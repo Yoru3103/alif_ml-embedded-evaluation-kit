@@ -307,6 +307,10 @@ The build parameters are:
   override the default location for these models.  Defaults to `./resources_downloaded` relative to the
   root of this project.
 
+- `INTERACTIVE_MODE`: Enables or disables interactive mode for the use cases. When set to `ON` (by default `OFF`),
+  the program pauses and waits for user input before proceeding to the next inference.
+  This flag cannot be used when running the tests.
+
 For details on the specific use-case build options, follow the instructions in the use-case specific documentation.
 
 Also, when setting any of the CMake configuration parameters that expect a directory, or file, path, **use absolute

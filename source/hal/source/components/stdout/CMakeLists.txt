@@ -1,5 +1,6 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022 Arm Limited and/or its affiliates <open-source-office@arm.com>
+#  SPDX-FileCopyrightText: Copyright 2022, 2025 Arm Limited and/or
+#  its affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,10 +35,8 @@ set(STDOUT_RETARGET     OFF CACHE BOOL "Retarget stdout/err to UART")
 # Interface library for standard output:
 set(STDOUT_IFACE_TARGET stdout_iface)
 add_library(${STDOUT_IFACE_TARGET} INTERFACE)
-target_include_directories(${STDOUT_IFACE_TARGET} INTERFACE include)
 
 if (STDOUT_RETARGET)
-
     set(STDOUT_COMPONENT_CMSDK stdout_retarget_cmsdk)
     set(STDOUT_COMPONENT_PL011 stdout_retarget_pl011)
 
@@ -85,26 +84,5 @@ if (STDOUT_RETARGET)
     message(STATUS "*******************************************************")
     message(STATUS "Library:                  " ${STDOUT_COMPONENT_CMSDK})
     message(STATUS "Library:                  " ${STDOUT_COMPONENT_PL011})
-    message(STATUS "*******************************************************")
-
-else()
-
-    # Create static library for retarget (stdout/err over UART)
-    set(STDOUT_COMPONENT stdout)
-    add_library(${STDOUT_COMPONENT} STATIC)
-
-    ## Component sources - public
-    target_sources(${STDOUT_COMPONENT}
-        PUBLIC
-        source/user_input.c)
-
-    target_link_libraries(${STDOUT_COMPONENT}
-        PUBLIC
-        ${STDOUT_IFACE_TARGET})
-
-    # Display status
-    message(STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR})
-    message(STATUS "*******************************************************")
-    message(STATUS "Library:                  " ${STDOUT_COMPONENT})
     message(STATUS "*******************************************************")
 endif()

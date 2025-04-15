@@ -44,10 +44,7 @@ void hal_platform_release(void)
     platform_release();
 }
 
-bool hal_get_user_input(char* user_input, int size)
+void hal_await_user_input()
 {
-    if (1 != GetLine(user_input, size - 1)) {
-        return true;
-    }
-    return false;
+    fgetc(stdin);
 }

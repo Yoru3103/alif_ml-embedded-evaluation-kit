@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2022, 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2025 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -85,6 +85,10 @@ namespace app {
         uint32_t loopCount = 0;
 
         while (true) {
+#ifdef INTERACTIVE_MODE
+            AwaitUserInput(); // Wait for user input before moving forward.
+#endif /* INTERACTIVE_MODE */
+
             uint32_t nElements = 0;
             hal_audio_start();
             auto audioData = hal_audio_get_captured_frame(&nElements);
@@ -217,7 +221,6 @@ namespace app {
                                  dataPsnTxtInfStartX,
                                  dataPsnTxtInfStartY,
                                  false);
-
         }
 
         return true;

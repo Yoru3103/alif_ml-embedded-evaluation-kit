@@ -173,6 +173,11 @@ foreach(use_case ${USE_CASES})
         ${UC_SRC}
         ${SRC_GEN})
 
+    # Checking and setting the interactive mode
+    if(INTERACTIVE_MODE)
+        target_compile_definitions(${UC_LIB_NAME} PUBLIC "INTERACTIVE_MODE")
+    endif()
+
     target_include_directories(${UC_LIB_NAME} PUBLIC
         ${APPLICATION_INCLUDE_DIRS}
         ${UC_INCLUDE}

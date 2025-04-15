@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2024-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -130,7 +130,7 @@ target_link_libraries(${PLATFORM_DRIVERS_TARGET} PUBLIC
     lcd_stubs
     hal_audio_static_streams
     $<IF:$<BOOL:${FVP_VSI_ENABLED}>,hal_camera_vsi,hal_camera_static_images>
-    $<IF:$<BOOL:${STDOUT_RETARGET}>,stdout_retarget_cmsdk,stdout>)
+    $<IF:$<BOOL:${STDOUT_RETARGET}>,stdout_retarget_cmsdk,stdout_iface>)
 
 # Set the CPU profiling definition
 if (CPU_PROFILE_ENABLED)

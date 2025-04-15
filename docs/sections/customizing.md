@@ -534,19 +534,6 @@ However, for clarity, here is the full list of available functions:
 
 > **Note:** The default output level is `info = level 2`.
 
-## Reading user input from console
-
-The platform package under HAL must provide an implementation for a function `GetLine`. This is then wrapped by HAL to
-expose a function called `hal_get_user_input`.
-
-```C++
-char ch_input[128];
-hal_get_user_input(ch_input, sizeof(ch_input));
-```
-
-The function intends to block until a line has been provided. For embedded targets, this call might be redirected to get
-input from a UART block. For the host targets, this will just be a call to the C standard library instead.
-
 ## Output to MPS3 LCD
 
 The HAL exposes LCD functions to print text or an image to the board LCD. For example:

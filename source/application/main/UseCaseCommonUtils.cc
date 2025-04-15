@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2022, 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2025 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -74,15 +74,15 @@ namespace app {
         return runInf;
     }
 
-    int ReadUserInputAsInt()
+#ifdef INTERACTIVE_MODE
+    void AwaitUserInput()
     {
-        char chInput[128];
-        memset(chInput, 0, sizeof(chInput));
-
-        hal_get_user_input(chInput, sizeof(chInput));
-        return atoi(chInput);
+        info("Press any key to continue...\n");
+        hal_await_user_input();
     }
+#endif /* INTERACTIVE_MODE */
 
+#if VERIFY_TEST_OUTPUT
     void DumpTensorData(const uint8_t* tensorData, size_t size, size_t lineBreakForNumElements)
     {
         char strhex[8];
@@ -114,5 +114,6 @@ namespace app {
 
         DumpTensorData(tensorData, tensorSz, lineBreakForNumElements);
     }
+#endif /* VERIFY_TEST_OUTPUT */
 } /* namespace app */
 } /* namespace arm */

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2022, 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2025 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -86,6 +86,10 @@ namespace app {
         }
 
         while(true) {
+#ifdef INTERACTIVE_MODE
+            AwaitUserInput(); // Wait for user input before moving forward.
+#endif /* INTERACTIVE_MODE */
+
             hal_lcd_clear(COLOR_BLACK);
             hal_camera_start();
 

@@ -1,5 +1,6 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022, 2024 Arm Limited and/or its affiliates <open-source-office@arm.com>
+#  SPDX-FileCopyrightText: Copyright 2022, 2024-2025 Arm Limited and/or its
+#  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,7 +104,7 @@ target_link_libraries(${PLATFORM_DRIVERS_TARGET}  PUBLIC
         lcd_stubs
         hal_audio_static_streams
         hal_camera_static_images
-        $<IF:$<BOOL:${STDOUT_RETARGET}>,stdout_retarget_pl011,stdout>)
+        $<IF:$<BOOL:${STDOUT_RETARGET}>,stdout_retarget_pl011,stdout_iface>)
 
 # Set the CPU profiling definition
 if (CPU_PROFILE_ENABLED)
@@ -121,7 +122,7 @@ if (ETHOS_U_NPU_ENABLED)
         ethos_u_npu)
 
     if (ETHOS_U_NPU_TIMING_ADAPTER_ENABLED)
-        ## Platform component: Ethos-U timing apadpter initialization
+        ## Platform component: Ethos-U timing adapter initialization
         add_subdirectory(${COMPONENTS_DIR}/npu_ta ${CMAKE_BINARY_DIR}/npu_ta)
 
         target_link_libraries(${PLATFORM_DRIVERS_TARGET}
