@@ -726,18 +726,12 @@ The standard output (stdout) component follows the same convention. It can expos
 
 - `stdout_retarget_cmsdk`
 - `stdout_retarget_pl011`
-- `stdout`
 
-The first two targets use the UART (pulling in `CMSDK UART` and `PL011 UART` drivers respectively). The third
-implementation relies on standard C or overridden implementation of `fgets` function and can be thought of as stubs
-for platforms that do not need to use UART driven stdout (and stderr) streams. It is also possible to run applications
-with semi-hosting enabled - `printf` statements will be shown in the host machine console, typically via a debugger.
-To facilitate this, the CMake toolchain files expose a function called `configure_semihosting`.  For supported targets
-semi-hosting is disabled by default, as mentioned in the `cmsis_device` target CMake file.
-
-```cmake
-configure_semihosting(${CMSIS_DEVICE_TARGET} OFF)
-```
+The two targets use the UART, pulling in `CMSDK UART` and `PL011 UART` drivers respectively. It is also possible to run
+applications with semihosting enabled where stardard output and error streams should use the host machine console,
+typically via a debugger. To enable this, the CMake toolchain files implement a function called `configure_semihosting`.
+For supported targets semihosting is disabled by default, but can be enabled using CMake configuration option
+`SEMIHOSTING_ENABLED`.
 
 Other re-usable component is the NPU. It wraps the Arm Ethos-U NPU driver sources with functions that can be called
 from the platform initialisation routine. In addition to general utility functions, this component also provides
@@ -755,9 +749,8 @@ The driver will call these functions for invalidating data cache (memory regions
 
 Examples of the standard output, LCD and NPU components can be found here: `source/hal/source/components`.
 
-Linker scripts for Arm Compiler and GNU embedded toolchain should be added. The location of the files is
-on your discretion. The new platform build configuration script must add it in the `platform_custom_post_build`
-function like this:
+Linker scripts for all supported toolchains should be added. The location of the files is on your discretion.
+The new platform build configuration script must add it in the `platform_custom_post_build` function like this:
 
 ```cmake
     add_linker_script(

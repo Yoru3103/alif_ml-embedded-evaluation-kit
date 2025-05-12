@@ -13,6 +13,7 @@
     - [Configuring the build for MPS3 SSE-300](./building.md#configuring-the-build-for-mps3-sse_300)
       - [Using GNU Arm Embedded toolchain](./building.md#using-gnu-arm-embedded-toolchain)
       - [Using Arm Compiler](./building.md#using-arm-compiler)
+      - [Using Arm Toolchain for Embedded](./building.md#using-arm-toolchain-for-embedded)
       - [Configuring applications to run with single sample input](./building.md#configuring-applications-to-run-with-single-sample-input)
       - [Generating project for Arm Development Studio](./building.md#generating-project-for-arm-development-studio)
       - [Configuring with custom TPIP dependencies](./building.md#configuring-with-custom-tpip-dependencies)
@@ -34,42 +35,52 @@ This section assumes that you are using an **x86_64 Linux** build machine.
 
 ## Build prerequisites
 
-Before proceeding, it is *essential* to ensure that the following prerequisites have been fulfilled:
+Before proceeding, it is *essential* that the following prerequisites have been fulfilled:
 
-- At least GNU Arm embedded toolchain 10.2.1, if building for SSE-300, is installed and available on the path
-- At least GNU Arm embedded toolchain 13.2.1, if building for SSE-310, is installed and available on the path
-- Alternatively, Arm Compiler version 6.19 or higher is installed and available on the path.
+- GNU Arm embedded toolchain version 13.2.1 or higher, OR
+- Arm Compiler version 6.22 or higher, OR
+- Arm Toolchain for Embedded (ATfE) version 20.1.0 or higher (experimental support)
 
-> **Note**: There is a known issue with Arm GNU Embedded Toolchain version 12.2.Rel1. See
-> [Internal Compiler Error](./troubleshooting.md#internal-compiler-error) for details.
+Test the compiler by running:
 
-  Test the compiler by running:
+  ```commandline
+  armclang --version
+  ```
 
-    ```commandline
-    armclang -v
-    ```
+  ```log
+  Product: Hardware Success Kit (Early Access)
+  Component: Arm Compiler for Embedded 6.23
+  Tool: armclang [5f103000]
+  ```
 
-    ```log
-    Product: Keil MDK Community
-    Component: ARM Compiler for Embedded 6.19
-    ```
+Alternatively, use:
 
-  Alternatively, use:
+  ```commandline
+  arm-none-eabi-gcc --version
+  ```
 
-    ```commandline
-    arm-none-eabi-gcc --version
-    ```
+  ```log
+  arm-none-eabi-gcc (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614
+  Copyright (C) 2023 Free Software Foundation, Inc.
+  This is free software; see the source for copying conditions.  There is NO
+  warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  ```
 
-    ```log
-    arm-none-eabi-gcc (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.2.1 20201103 (release)
-    SPDX-FileCopyrightText: Copyright 2020 Free Software Foundation, Inc.
-    This is free software; see the source for copying conditions.  There is NO
-    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-    ```
+For ATfE/LLVM:
+  ```commandline
+  clang --version
+  ```
+
+  ```log
+  clang version 20.1.0
+  Target: aarch64-unknown-linux-gnu
+  Thread model: posix
+  ```
 
 > **Note:** If required, add the compiler to the path (can be added to ~/.bashrc to be set permanently):
->
-> `export PATH=/path/to/armclang/bin:$PATH` OR `export PATH=/path/to/gcc-arm-none-eabi-toolchain/bin:$PATH`
+><br>`export PATH=/path/to/armclang/bin:$PATH`, OR
+><br>`export PATH=/path/to/gcc-arm-none-eabi-toolchain/bin:${PATH}`, OR
+><br>`export PATH=/path/to/atfe-or-llvm-toolchain/bin:${PATH}`
 
 - If you are using the proprietary Arm Compiler, ensure that the compiler license has been correctly configured.
 
@@ -302,6 +313,13 @@ The build parameters are:
 - `FVP_VSI_SRC_PATH`: If `FVP_VSI_ENABLED` is `ON`, this cache variable defaults to the git submodule for AVH
    repository. This directory is expected to provide the VSI driver sources and Python scripts.
 
+- `SEMIHOSTING_ENABLED`: Toggles semihosting support. For more information on semihosting, see
+  [What is semihosting?](https://developer.arm.com/documentation/dui0203/j/semihosting/about-semihosting/what-is-semihosting-)
+  By default, this is set to `OFF` and is only included as an option for `MPS3` and `MPS4` based target platforms.
+
+  > **NOTE**: If semihosting enabled application is used with FVPs, additional command line arguments must be provided.
+  > See [semihosting section under deployment](./deployment.md#semihosting).
+
 - `RESOURCES_PATH`: The path to the resources downloaded by the set_up_default_resources.py script
   and compiled using Vela.  This can be set if this script was run using the `--downloads-dir` flag to
   override the default location for these models.  Defaults to `./resources_downloaded` relative to the
@@ -450,6 +468,12 @@ If using the `Arm Compiler`, execute:
 ./build_default.py --toolchain arm
 ```
 
+For LLVM/Clang builds, use:
+
+```commandline
+./build_default.py --toolchain llvm
+```
+
 Additional command line arguments supported by this script are:
 
 - `--skip-download`: Do not download resources: models and test vectors
@@ -523,6 +547,15 @@ To configure a build that can be debugged using Arm Development Studio, specify 
 cmake .. \
     -DCMAKE_TOOLCHAIN_FILE=scripts/cmake/toolchains/bare-metal-armclang.cmake \
     -DCMAKE_BUILD_TYPE=Debug
+```
+
+#### Using Arm Toolchain for Embedded
+
+Similar to others, for using an LLVM/Clang based toolchain like the Arm Toolchain for Embedded, the toolchain option
+`CMAKE_TOOLCHAIN_FILE` can be set as:
+
+```commandline
+cmake ../ -DCMAKE_TOOLCHAIN_FILE=scripts/cmake/toolchains/bare-metal-llvm.cmake
 ```
 
 #### Configuring applications to run with single sample input

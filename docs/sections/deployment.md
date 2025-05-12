@@ -1,11 +1,11 @@
 # Deployment
-
 - [Deployment](./deployment.md#deployment)
   - [Fixed Virtual Platform](./deployment.md#fixed-virtual-platform)
     - [Installing an FVP](./deployment.md#installing-an-fvp)
       - [Arm® Corstone™-320 FVP](./deployment.md#arm_corstone_320-fvp)
     - [Deploying on an FVP](./deployment.md#deploying-on-an-fvp)
     - [Running the FVP without the UI](./deployment.md#running-the-fvp-without-the-ui)
+    - [Semihosting](./deployment.md#semihosting)
     - [Virtual Streaming Interface](./deployment.md#virtual-streaming-interface)
       - [VSI requirements](./deployment.md#vsi-requirements)
       - [Deployment with VSI](./deployment.md#deployment-with-virtual-streaming-interface)
@@ -142,16 +142,17 @@ The FVP supports many command-line parameters, such as:
 
 - Those passed by using `-C <param>=<value>`. The most important ones are:
 
-  | Arm® Corstone™-300 FVP and Arm® Corstone™-310 FVP | Arm® Corstone™-315 FVP and Arm® Corstone™-320 FVP                                      | Description                                                                                                                                                                                                                                                                 |
-  |---------------------------------------------------|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | Arm® Corstone™-300 FVP and Arm® Corstone™-310 FVP | Arm® Corstone™-315 FVP and Arm® Corstone™-320 FVP                                      | Description                                                                                                                                                                                                                                                                |
+  |---------------------------------------------------|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
   | `ethosu.num_macs`                                 | `mps4_board.subsystem.ethosu.num_macs`                                                 | Sets the *Ethos-U* configuration for the model. The valid parameters are:<br/>- *Ethos-U55*: `32`, `64`, `256`, and the default one `128`.<br/>- *Ethos-U65*: `256`, and the default one `512`.<br/>- *Ethos-U85*: `128`, `512`, `1024`, `2048`, and the default one `256`. |
-  | `cpu0.CFGITCMSZ`                                  | `mps4_board.subsystem.cpu0.CFGITCMSZ`                                                  | The ITCM size for the *Cortex-M* CPU. The size of ITCM is *pow(2, CFGITCMSZ - 1)* KB                                                                                                                                                                                        |
-  | `cpu0.CFGDTCMSZ`                                  | `mps4_board.subsystem.cpu0.CFGDTCMSZ`                                                  | The DTCM size for the *Cortex-M* CPU. The size of DTCM is *pow(2, CFGDTCMSZ - 1)* KB                                                                                                                                                                                        |
-  | `mps3_board.telnetterminal0.start_telnet`         | `mps4_board.telnetterminal0.start_telnet`                                              | Starts the telnet session if nothing connected.                                                                                                                                                                                                                             |
-  | `mps3_board.uart0.out_file`                       | `mps4_board.uart0.out_file`                                                            | Sets the output file to hold the data written by the UART. Use `'-'` to send all output to `stdout` and is empty by default).                                                                                                                                               |
-  | `mps3_board.uart0.shutdown_on_eot`                | `mps4_board.uart0.shutdown_on_eot`                                                     | Shut down the simulation when an `EOT (ASCII 4)` char is transmitted.                                                                                                                                                                                                       |
-  | `mps3_board.visualisation.disable-visualisation`  | `mps4_board.visualisation.disable-visualisation`<br/>`vis_hdlcd.disable_visualisation` | Enables, or disables, visualization and is disabled by default.                                                                                                                                                                                                             |
-  | `ethosu.extra_args="--fast"`                      | `mps4_board.subsystem.ethosu.extra_args="--fast"`                                      | Run the FVP in fast mode.  This is useful for functionally testing your application, but should *not* be used for performance testing.                                                                                                                                      |
+  | `cpu0.CFGITCMSZ`                                  | `mps4_board.subsystem.cpu0.CFGITCMSZ`                                                  | The ITCM size for the *Cortex-M* CPU. The size of ITCM is *pow(2, CFGITCMSZ - 1)* KB                                                                                                                                                                                       |
+  | `cpu0.CFGDTCMSZ`                                  | `mps4_board.subsystem.cpu0.CFGDTCMSZ`                                                  | The DTCM size for the *Cortex-M* CPU. The size of DTCM is *pow(2, CFGDTCMSZ - 1)* KB                                                                                                                                                                                       |
+  | `mps3_board.telnetterminal0.start_telnet`         | `mps4_board.telnetterminal0.start_telnet`                                              | Starts the telnet session if nothing connected.                                                                                                                                                                                                                            |
+  | `mps3_board.uart0.out_file`                       | `mps4_board.uart0.out_file`                                                            | Sets the output file to hold the data written by the UART. Use `'-'` to send all output to `stdout` and is empty by default).                                                                                                                                              |
+  | `mps3_board.uart0.shutdown_on_eot`                | `mps4_board.uart0.shutdown_on_eot`                                                     | Shut down the simulation when an `EOT (ASCII 4)` char is transmitted.                                                                                                                                                                                                      |
+  | `mps3_board.visualisation.disable-visualisation`  | `mps4_board.visualisation.disable-visualisation`<br/>`vis_hdlcd.disable_visualisation` | Enables, or disables, visualization and is disabled by default.                                                                                                                                                                                                            |
+  | `ethosu.extra_args="--fast"`                      | `mps4_board.subsystem.ethosu.extra_args="--fast"`                                      | Run the FVP in fast mode.  This is useful for functionally testing your application, but should *not* be used for performance testing.                                                                                                                                     |
+  | `cpu0.semihosting-enable`                         | `mps4_board.subsystem.cpu0.semihosting-enable`                                         | Toggles semihosting. Default value is `0` and to enable semihosting, it can be set to `1`                                                                                                                                                                                  |
 
   To start the model in `128` mode for *Ethos-U55*:
 
@@ -229,6 +230,20 @@ telnet localhost 5000
 > ```commandline
 > ${FVP_315_U65} -a <path/to/ethos-u-<use_case>.axf> ${FVP_315_ARGS}
 > ```
+
+### Semihosting
+
+FVPs allow semihosting support which can be enabled by passing in additional command line arguments. Note that this
+needs to be enabled for the application being deployed too.
+
+* For `MPS3` based targets: `-C cpu0.semihosting-enable=1`
+* For `MPS4` based targets: `-C mps4_board.subsystem.cpu0.semihosting-enable=1`
+
+> **NOTE**: For some toolchains (e.g.: the GNU Arm Embedded Toolchain) it may be necessary to set these values too:
+> * `MPS3`: `-C cpu0.semihosting-stack_base=0 -C cpu0.semihosting-stack_limit=0`
+> * `MPS4`: `-C mps4_board.subsystem.cpu0.semihosting-stack_base=0 -C mps4_board.subsystem.cpu0.semihosting-stack_limit=0`
+>
+> Read more on this [here](https://developer.arm.com/documentation/ka005824/latest/).
 
 ### Virtual Streaming Interface
 

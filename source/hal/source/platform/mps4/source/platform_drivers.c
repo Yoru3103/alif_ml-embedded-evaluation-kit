@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2024-2025 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -19,7 +19,6 @@
 #include "platform_drivers.h"
 
 #include "log_macros.h"     /* Logging functions */
-#include "uart_stdout.h"    /* stdout over UART. */
 #include "smm_mps4.h"       /* Memory map for MPS4. */
 
 #if defined(ARM_NPU)
@@ -30,6 +29,10 @@
 #endif /* ETHOS_U_NPU_TIMING_ADAPTER_ENABLED */
 
 #endif /* ARM_NPU */
+
+#if !defined(USE_SEMIHOSTING)
+#include "uart_stdout.h"    /* stdout over UART. */
+#endif /* !defined(USE_SEMIHOSTING) */
 
 /**
  * @brief   Checks if the platform is valid by checking
@@ -48,9 +51,11 @@ int platform_init(void)
 
     SystemCoreClockUpdate();    /* From start up code */
 
+#if !defined(USE_SEMIHOSTING)
     /* UART init - will enable valid use of printf (stdout
      * re-directed at this UART (UART0) */
     UartStdOutInit();
+#endif /* !defined(USE_SEMIHOSTING) */
 
     if (0 != (err = verify_platform())) {
         return err;

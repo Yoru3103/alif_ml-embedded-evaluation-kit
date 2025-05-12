@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022-2024 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2022-2025 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -54,6 +54,9 @@ function(platform_custom_post_build)
     set(oneValueArgs TARGET_NAME)
     cmake_parse_arguments(PARSED "" "${oneValueArgs}" "" ${ARGN} )
 
+    if (NOT DEFINED use_case)
+        return()
+    endif()
 
     # If native build tests
     set(TEST_SRC_USE_CASE "")

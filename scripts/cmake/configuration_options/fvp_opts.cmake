@@ -49,6 +49,12 @@ else()
     endif()
 endif()
 
+# Note that if semihosting enabled application is deployed on FVP, additional command-line
+# arguments are needed to enable it.
+USER_OPTION(SEMIHOSTING_ENABLED "Enable semihosting instead of UART retarget"
+    OFF
+    BOOL)
+
 # Assuming USE_SINGLE_INPUT (from common options) is included before these options
 # warn the developer that FVP tests may run using multiple sample files (depending on
 # the use case)

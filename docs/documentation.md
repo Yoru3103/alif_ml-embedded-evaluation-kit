@@ -36,10 +36,14 @@ Before starting the setup process, please make sure that you have:
   > **Note:** Currently, Microsoft® Windows® is not supported as a build environment.
 
 - At least one of the following toolchains:
-  - GNU Arm Embedded toolchain (version 10.2.1 or above) -
+  - GNU Arm Embedded toolchain (version 13.2.1 or above) -
   [GNU Arm Embedded toolchain downloads](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads)
-  - Arm Compiler (version 6.19 or above) with a valid license -
+  - Arm Compiler (version 6.22 or above) with a valid license -
   [Arm Compiler download Page](https://developer.arm.com/tools-and-software/embedded/arm-compiler/downloads)
+  - Arm Toolchain for Embedded (version 19.1.5 or above) -
+  [ATfE releases](https://github.com/arm/arm-toolchain/releases).
+  Read more on ATfE [here](https://developer.arm.com/Tools%20and%20Software/Arm%20Toolchain%20for%20Embedded).
+  Current level of support for ATfE, in this repository, is **experimental**.
 
 - An Arm® MPS3 FPGA prototyping board and components for FPGA evaluation or a `Fixed Virtual Platform` binary:
   - An MPS3 board loaded with Arm® Corstone™-300 (`AN552`) or Corstone™-310 reference package (`AN555`). See

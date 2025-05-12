@@ -135,13 +135,16 @@ endfunction()
 
 # Function to add linker option to use the chosen linker script (scatter file).
 function(add_linker_script TARGET_NAME SCRIPT_DIR SCRIPT_NAME)
-    set(LINKER_SCRIPT_PATH ${SCRIPT_DIR}/${SCRIPT_NAME}.sct)
+    set(LINKER_SCRIPT_PATH ${SCRIPT_DIR}/${SCRIPT_NAME}.armclang.sct)
     if (NOT EXISTS ${LINKER_SCRIPT_PATH})
         message(FATAL_ERROR "Scatter file not found: ${LINKER_SCRIPT_PATH}")
     endif()
     message(STATUS "Using linker script: ${LINKER_SCRIPT_PATH}")
     target_link_options(${TARGET_NAME} PUBLIC
         --scatter=${LINKER_SCRIPT_PATH})
+    set_target_properties(${TARGET_NAME}
+        PROPERTIES
+        LINK_DEPENDS ${LINKER_SCRIPT_PATH})
 endfunction()
 
 # Function to set the command to copy/extract contents from an elf

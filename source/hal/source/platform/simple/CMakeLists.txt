@@ -68,7 +68,6 @@ endif()
 add_subdirectory(${COMPONENTS_DIR}/cmsis_device ${CMAKE_BINARY_DIR}/cmsis_device)
 
 ## Platform component: stdout
-set(STDOUT_RETARGET ON CACHE BOOL "Retarget stdout/err to UART")
 add_subdirectory(${COMPONENTS_DIR}/stdout ${CMAKE_BINARY_DIR}/stdout)
 
 ## Platform component: lcd
@@ -104,7 +103,7 @@ target_link_libraries(${PLATFORM_DRIVERS_TARGET}  PUBLIC
         lcd_stubs
         hal_audio_static_streams
         hal_camera_static_images
-        $<IF:$<BOOL:${STDOUT_RETARGET}>,stdout_retarget_pl011,stdout_iface>)
+        $<$<NOT:$<BOOL:${SEMIHOSTING_ENABLED}>>:stdout_retarget_pl011>)
 
 # Set the CPU profiling definition
 if (CPU_PROFILE_ENABLED)

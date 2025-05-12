@@ -53,7 +53,6 @@ if (NOT DEFINED COMPONENTS_DIR)
 endif()
 
 ## Platform component: stdout
-set(STDOUT_RETARGET OFF CACHE BOOL "Retarget stdout/err to UART")
 add_subdirectory(${COMPONENTS_DIR}/stdout ${CMAKE_BINARY_DIR}/stdout)
 
 ## Platform component: lcd
@@ -73,7 +72,6 @@ target_link_libraries(${PLATFORM_DRIVERS_TARGET}
     PUBLIC
     log
     platform_pmu
-    stdout_iface
     lcd_stubs
     hal_audio_static_streams
     hal_camera_static_images)
