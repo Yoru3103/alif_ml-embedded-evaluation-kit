@@ -178,7 +178,7 @@ along with the network inputs.
 It also builds TensorFlow Lite for Microcontrollers library, Arm® *Ethos™-U* NPU driver library, and the CMSIS-DSP library
 from sources.
 
-The build script is parameterized to support different options (see [common_opts.cmake](../../scripts/configuration_options/common_opts.cmake)).
+The build script is parameterized to support different options (see [common_opts.cmake](../../scripts/cmake/configuration_options/common_opts.cmake)).
 Default values for these parameters configure the build for all use-cases to be executed on an MPS3 FPGA or the Fixed Virtual
 Platform (FVP) implementation of the Arm® *Corstone™-300* design.
 
@@ -285,9 +285,12 @@ The build parameters are:
 
 - `TA_CONFIG_FILE`: The path to the CMake configuration file that contains the timing adapter parameters. Used only if
   the timing adapter build is enabled. Default for Ethos-U55 NPU is
-  [ta_config_u55_high_end.cmake](../../scripts/timing_adapter/ta_config_u55_high_end.cmake),
-  for Ethos-U65 NPU is [ta_config_u55_high_end.cmake](../../scripts/timing_adapter/ta_config_u55_high_end.cmake) and
-  for Ethos-U85 NPU is [ta_config_u85_high_end.cmake](../../scripts/timing_adapter/ta_config_u85_high_end.cmake).
+  [ta_config_u55_high_end.cmake](../../scripts/cmake/timing_adapter/ta_config_u55_high_end.cmake),
+  for Ethos-U65 NPU is [ta_config_u55_high_end.cmake](../../scripts/cmake/timing_adapter/ta_config_u55_high_end.cmake).
+  For Ethos-U85 NPU, the default configuration file depends on the MAC configuration.
+  The default for 128 and 256 is [ta_config_u85_sys_dram_low.cmake](../../scripts/cmake/timing_adapter/ta_config_u85_sys_dram_low.cmake),
+  the default for 512 and 1024 is [ta_config_u85_sys_dram_mid.cmake](../../scripts/cmake/timing_adapter/ta_config_u85_sys_dram_mid.cmake),
+  and the default for 2048 is [ta_config_u85_sys_dram_high.cmake](../../scripts/cmake/timing_adapter/ta_config_u85_sys_dram_high.cmake).
 
 - `TENSORFLOW_LITE_MICRO_CLEAN_BUILD`: Optional parameter to enable, or disable, "cleaning" prior to building for the
   TensorFlow Lite Micro library. Enabled by default.

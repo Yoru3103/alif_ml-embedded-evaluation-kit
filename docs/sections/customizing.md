@@ -13,7 +13,6 @@
     - [Using GetModelPointer and GetModelLen methods](./customizing.md#using-getmodelpointer-and-getmodellen-methods)
   - [Executing inference](./customizing.md#executing-inference)
   - [Printing to console](./customizing.md#printing-to-console)
-  - [Reading user input from console](./customizing.md#reading-user-input-from-console)
   - [Output to MPS3 LCD](./customizing.md#output-to-mps3-lcd)
   - [Building custom use-case](./customizing.md#building-custom-use_case)
   - [Adding custom platform support](./customizing.md#adding-custom-platform-support)
@@ -215,8 +214,7 @@ Fast Model or MPS3 FPGA board.
 It covers common major steps: The application main loop creation, a description of the NN model, and inference
 execution.
 
-In addition, few useful examples are provided: Reading user input, printing into console, and drawing images into MPS3
-LCD.
+In addition, some useful examples are provided: Printing into console, and drawing images into MPS3 LCD.
 
 For example:
 
@@ -232,7 +230,7 @@ Start with creation of a subdirectory under the `source/use_case` directory and 
 
 ## Implementing main loop
 
-The use-case main loop is the place to put use-case main logic. It is an infinite loop that reacts on user input,
+The use-case main loop is the place to put use-case main logic. It is an infinite loop that
 triggers use-case conditional logic based on the input and present results back to the user.
 
 However, it could also be a simple logic that runs a single inference and then exits.

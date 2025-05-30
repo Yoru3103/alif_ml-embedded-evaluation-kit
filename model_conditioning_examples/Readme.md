@@ -161,7 +161,7 @@ meaning that the memory saving affects of both can be combined. Quantization the
 Arm® Ethos-U NPU.
 
 If you are targetting an Arm® Ethos-U NPU then the output TensorFlow Lite file will also need to be passed through the Vela
-compiler for further optimizations before it can be used (see [Optimize model with Vela compiler](./building.md#optimize-custom-model-with-vela-compiler)).
+compiler for further optimizations before it can be used (see [Optimize model with Vela compiler](../docs/sections/building.md#optimize-custom-model-with-vela-compiler)).
 
 ## References
 

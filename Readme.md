@@ -51,9 +51,6 @@ To run evaluations using this software, we suggest using:
   the [Arm® Cortex™-M85 processor](https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m85)
   - [Arm® Corstone™-320 MPS3 based Fixed Virtual Platform (FVP)](https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps) offers the [Arm® Ethos™-U85 NPU](https://www.arm.com/products/silicon-ip-cpu/ethos/ethos-u85) software fast model in combination with
   the [Arm® Cortex™-M85 processor](https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m85)
-  - You can also take advantage of
-    [Arm Virtual Hardware](https://www.arm.com/products/development-tools/simulation/virtual-hardware) (AVH) and [run the Fixed Virtual Platform
-    in the cloud](./docs/sections/arm_virtual_hardware.md).
 
 >Arm® Corstone™-300 and Corstone™-310 design implementations are publicly available on [Download FPGA Images](https://developer.arm.com/tools-and-software/development-boards/fpga-prototyping-boards/download-fpga-images) page,
 or as a [Fixed Virtual Platform of the MPS3 development board](https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps).
@@ -207,7 +204,7 @@ does not contain any non-inclusive language. If you find something that concerns
 
 ## Licenses
 
-The ML Embedded applications samples are provided under the Apache 2.0 license, see [License Apache 2.0](../LICENSE_APACHE_2.0.txt).
+The ML Embedded applications samples are provided under the Apache 2.0 license, see [License Apache 2.0](LICENSE_APACHE_2.0.txt).
 
 Application input data sample files are provided under their original license:
 
