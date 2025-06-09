@@ -1,3 +1,10 @@
+Changes for 25.05
+    * Added support for newer LLVM based Arm Toolchain for Embedded (ATfE) for versions 19.1.5, 20.0.0 and 20.1.0.
+    * Updated bare-metal toolchain files to always add function and data sections for both toolchains.
+    * Updated CMSIS-DSP build to only build required sources by default.
+    * Added interactive mode option to allow user control when running use cases.
+    * General documentation updates - fixing broken links, adding macOS® support commands for FPGA deployment and updating URLs to GitLab.
+
 Changes for 25.02
     * Support for 25.02 NPU components and dependencies (core-driver, core-platform, Vela 4.2.0, CMSIS-6, CMSIS-DSP, CMSIS-NN and TensorFlow Lite Micro)
     * Fix for CMSIS-NN usage in TensorFlow Lite Micro. This bug was introduced in Sep 2024

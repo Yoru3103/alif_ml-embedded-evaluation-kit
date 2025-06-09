@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2022 Arm Limited and/or its affiliates <open-source-office@arm.com>
+ * SPDX-FileCopyrightText: Copyright 2022, 2025 Arm Limited and/or its affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,10 +60,11 @@ void ethosu_clear_cache_states(void)
     state->dcache_cleaned     = 0;
 }
 
-void ethosu_flush_dcache(uint32_t *p, size_t bytes)
+void ethosu_flush_dcache(const uint64_t *base_addr, const size_t *base_addr_size, int num_base_addr)
 {
-    UNUSED(p);
-    UNUSED(bytes);
+    UNUSED(base_addr);
+    UNUSED(base_addr_size);
+    UNUSED(num_base_addr);
 #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     cpu_cache_state* const state = ethosu_get_cpu_cache_state();
     if (SCB->CCR & SCB_CCR_DC_Msk) {
@@ -99,10 +100,12 @@ void ethosu_flush_dcache(uint32_t *p, size_t bytes)
 #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 }
 
-void ethosu_invalidate_dcache(uint32_t *p, size_t bytes)
+void ethosu_invalidate_dcache(const uint64_t *base_addr, const size_t *base_addr_size, int num_base_addr)
 {
-    UNUSED(p);
-    UNUSED(bytes);
+    UNUSED(base_addr);
+    UNUSED(base_addr_size);
+    UNUSED(num_base_addr);
+    
 #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     cpu_cache_state* const state = ethosu_get_cpu_cache_state();
     if (SCB->CCR & SCB_CCR_DC_Msk) {

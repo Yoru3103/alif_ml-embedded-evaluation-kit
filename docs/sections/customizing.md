@@ -7,14 +7,14 @@
   - [Application context](./customizing.md#application-context)
   - [Profiler](./customizing.md#profiler)
   - [NN Model API](./customizing.md#nn-model-api)
-  - [Adding custom ML use-case](./customizing.md#adding-custom-ml-use_case)
+  - [Adding custom ML use-case](./customizing.md#adding-custom-ml-use-case)
   - [Implementing main loop](./customizing.md#implementing-main-loop)
   - [Implementing custom NN model](./customizing.md#implementing-custom-nn-model)
     - [Using GetModelPointer and GetModelLen methods](./customizing.md#using-getmodelpointer-and-getmodellen-methods)
   - [Executing inference](./customizing.md#executing-inference)
   - [Printing to console](./customizing.md#printing-to-console)
   - [Output to MPS3 LCD](./customizing.md#output-to-mps3-lcd)
-  - [Building custom use-case](./customizing.md#building-custom-use_case)
+  - [Building custom use-case](./customizing.md#building-custom-use-case)
   - [Adding custom platform support](./customizing.md#adding-custom-platform-support)
 
 This section describes how to implement a custom Machine Learning application running on Arm® *Corstone™-300* based FVP
