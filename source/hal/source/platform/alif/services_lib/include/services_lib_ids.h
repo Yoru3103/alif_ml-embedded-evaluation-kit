@@ -52,6 +52,7 @@ enum SERVICE_ID_t {
   SERVICE_APPLICATION_UART_WRITE_ID,                                         /**< 104 (0x68) */
   SERVICE_APPLICATION_OSPI_WRITE_KEY_ID,                                     /**< 105 (0x69) */
   SERVICE_APPLICATION_DMPU_ID,                                               /**< 106 (0x6A) */
+  SERVICE_APPLICATION_VERIFY_IMAGE_ID,                                       /**< 107 (0x6B) */
   SERVICE_APPLICATION_END                       = 199,                       /**< 199 (0xC7) */
 
   /**
