@@ -6,7 +6,7 @@
 	url = https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver.git
 [submodule "dependencies/core-platform"]
 	path = dependencies/core-platform
-	url = https://review.mlplatform.org/ml/ethos-u/ethos-u-core-platform
+	url = https://git.gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform.git
 [submodule "dependencies/cmsis-dsp"]
 	path = dependencies/cmsis-dsp
 	url = https://github.com/ARM-software/CMSIS-DSP.git

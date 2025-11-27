@@ -169,7 +169,7 @@ static uint32_t set_power_profiles()
     default_runprof.ip_clock_gating = LP_PERIPH_MASK | NPU_HE_MASK;
 #elif defined(EAGLE_DEVICE)
     default_runprof.dcdc_mode       = DCDC_MODE_PWM;
-    default_runprof.memory_blocks   = SERAM_MASK | SRAM0_1_MASK | SRAM0_2_MASK | SRAM0_3_MASK | SRAM0_4_MASK | SRAM1_MASK | MRAM_MASK | FWRAM_MASK | BACKUP4K_MASK;
+    default_runprof.memory_blocks   = SERAM_MASK | SRAM0_MASK | SRAM1_MASK | MRAM_MASK | FWRAM_MASK | BACKUP4K_MASK;
     default_runprof.phy_pwr_gating  = LDO_PHY_MASK | MIPI_PLL_DPHY_MASK | MIPI_TX_DPHY_MASK | MIPI_RX_DPHY_MASK;
     default_runprof.ip_clock_gating = MIPI_DSI_MASK | CDC200_MASK | MIPI_CSI_MASK | CAMERA_MASK | LP_PERIPH_MASK | NPU_HE_MASK | NPU_HP_MASK;
 #else
@@ -334,14 +334,6 @@ int platform_init(void)
 
     se_err = (int)set_power_profiles();
 
-    // TODO: Remove when fixed in SE. Happens with SE 107. Hopefully fixed in SE 108.
-    // ========== START of FIX =========
-    volatile uint32_t* reg;
-    // Power ON SRAM0 & 1 and enable clocks for em
-    reg = (volatile uint32_t*)(0x1a60A000 + 0x4);
-    *reg &= ~((1U << 13) | (1U << 9));
-    *reg &= ~((1U << 12) | (1U << 8));
-    // ========== END of FIX =========
 #endif // SE_SERVICES_SUPPORT
 
     // CMSIS uses this handle in board_config.c as we don't use se_services_port.c we need to init it here. No matter if the SE_SERVICES_SUPPORT is defined.
