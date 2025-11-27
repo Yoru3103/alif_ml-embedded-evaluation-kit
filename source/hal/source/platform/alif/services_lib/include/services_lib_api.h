@@ -344,6 +344,11 @@ typedef enum {
 #define ES0_CLOCK_24MHZ   4
 #define ES0_CLOCK_48MHZ   0xC
 
+// ES0 configuration bit field
+#define ES0_CONFIG_NONE   0x0
+#define ES0_CONFIG_HPA    0x1
+#define ES0_CONFIG_CSP    0x2
+
 /**
  * @struct net_proc_boot_args_t
  * @brief ExtSys0 Boot arguments
@@ -355,6 +360,7 @@ typedef struct {
 	uint32_t trng_dst_addr;
 	uint32_t trng_len;
 	uint32_t es0_clock_select;
+	uint32_t configuration;	
 } net_proc_boot_args_t;
 
 /**
@@ -493,11 +499,16 @@ uint32_t SERVICES_application_ospi_write_key(uint32_t services_handle,
 					     uint32_t command,
 					     uint8_t *key,
 					     uint32_t *error_code);
+uint32_t SERVICES_application_verify_image(uint32_t services_handle,
+               uint32_t image_address,
+               uint32_t cert_chain_address,
+               uint32_t *error_code);
+
+
 uint32_t SERVICES_cryptocell_get_rnd(uint32_t services_handle,
 				     uint16_t rnd_len,
 				     void *rnd_value,
 				     int32_t *error_code);
-
 uint32_t SERVICES_cryptocell_get_lcs(uint32_t services_handle,
 					uint32_t *lcs_state,
 					int32_t *error_code);
