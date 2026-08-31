@@ -22,6 +22,7 @@
 #include "mlek/common/AudioSlidingWindow.hpp"
 #include "mlek/common/ImageUtils.hpp"
 #include "hal.h"
+#include "hal_audio_alif.h"
 #include "UseCaseCommonUtils.hpp"
 #include "mlek/log/log_macros.h"
 

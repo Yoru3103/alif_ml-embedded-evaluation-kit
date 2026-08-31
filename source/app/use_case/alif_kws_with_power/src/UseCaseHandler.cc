@@ -29,6 +29,7 @@
 #include "UseCaseHandler.hpp"
 
 #include "hal.h"
+#include "hal_audio_alif.h"
 #include "timer_alif.h"
 #include "sys_utils.h"
 #include "UseCaseCommonUtils.hpp"

@@ -31,6 +31,7 @@
 
 #include "UseCaseHandler.hpp"
 
+#include "hal_audio_alif.h"
 #include "mlek/use_case/asr/AsrClassifier.hpp"
 #include "mlek/use_case/asr/AsrResult.hpp"
 #include "mlek/common/AudioSlidingWindow.hpp"
