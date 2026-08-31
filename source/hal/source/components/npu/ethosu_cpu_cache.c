@@ -11,7 +11,8 @@
  */
  
 /*
- * SPDX-FileCopyrightText: Copyright 2022, 2025 Arm Limited and/or its affiliates <open-source-office@arm.com>
+ * SPDX-FileCopyrightText: Copyright 2022, 2025-2026 Arm Limited and/or its
+ * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +62,8 @@ void ethosu_flush_dcache(const uint64_t *base_addr, const size_t *base_addr_size
 {
     bool need_flush = false;
     for (int i = 0; i < num_base_addr; i++) {
-        if (ethosu_area_needs_flush_dcache((void *)base_addr[i], base_addr_size[i])) {
+        if (ethosu_area_needs_flush_dcache((uint32_t *)(uintptr_t)base_addr[i],
+                                           base_addr_size[i])) {
             need_flush = true;
             break;
         }
@@ -98,7 +100,8 @@ void ethosu_invalidate_dcache(const uint64_t *base_addr, const size_t *base_addr
 {
     bool need_flush = false;
     for (int i = 0; i < num_base_addr; i++) {
-        if (ethosu_area_needs_invalidate_dcache((void *)base_addr[i], base_addr_size[i])) {
+        if (ethosu_area_needs_invalidate_dcache((uint32_t *)(uintptr_t)base_addr[i],
+                                                base_addr_size[i])) {
             need_flush = true;
             break;
         }

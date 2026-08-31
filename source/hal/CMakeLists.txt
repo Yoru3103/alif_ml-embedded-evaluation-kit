@@ -73,7 +73,7 @@ target_link_libraries(${HAL_TARGET}
         hal_log             # Logging functions
     PUBLIC 
         hal_display_iface   # Display interface
-        audio_iface         # Audio interface
+        hal_audio_interface # Audio interface
         platform_drivers    # Platform drivers implementing the required interfaces
 )
 

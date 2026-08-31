@@ -56,6 +56,18 @@ static bool add_pmu_counter(
  */
 static uint32_t get_tstamp_milliseconds(mps4_pmu_counters* mps4_counters);
 
+void platform_init_counters(void)
+{
+    platform_reset_counters();
+}
+
+void platform_final_counters(void)
+{
+#if defined (ARM_NPU)
+    ethosu_pmu_final();
+#endif /* defined (ARM_NPU) */
+}
+
 void platform_reset_counters(void)
 {
     MPS4_FPGAIO->CLK1HZ   = 0;
