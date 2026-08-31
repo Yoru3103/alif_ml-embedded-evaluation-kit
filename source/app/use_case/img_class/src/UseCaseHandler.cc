@@ -59,12 +59,16 @@ namespace app {
         auto& profiler = ctx.Get<Profiler&>("profiler");
         auto& model    = ctx.Get<fwk::iface::Model&>("model");
 
+        /*
+         * LCD
+         */
         constexpr uint32_t dataPsnImgDownscaleFactor = 2;
         constexpr uint32_t dataPsnImgStartX          = 10;
         constexpr uint32_t dataPsnImgStartY          = 35;
 
         constexpr uint32_t dataPsnTxtInfStartX = 150;
         constexpr uint32_t dataPsnTxtInfStartY = 40;
+
 
         if (!model.IsInited()) {
             printf_err("Model is not initialised! Terminating processing.\n");
@@ -74,7 +78,7 @@ namespace app {
         auto inputTensor  = model.GetInputTensor(0);
         auto outputTensor = model.GetOutputTensor(0);
         auto inputShape   = inputTensor->Shape();
-        if (inputShape.size() < 4) {
+        if (inputShape.size() < 4) {    // NHWC
             printf_err("Input tensor dimension should be = 4\n");
             return false;
         }
@@ -130,7 +134,13 @@ namespace app {
                                 ctx.Get<ImgClassClassifier&>("classifier"),
                                 ctx.Get<std::vector<std::string>&>("labels"),
                                 results);
-        hal_camera_init();
+
+        if (!hal_camera_init()) {
+            printf_err("Camera init failed!\n");
+            return false;
+        }
+        info("Camera init done\n");
+        // hal_camera_init();
         auto bCamera = hal_camera_configure(nCols,
             nRows,
             HAL_CAMERA_MODE_SINGLE_FRAME,
@@ -139,23 +149,41 @@ namespace app {
             printf_err("Failed to configure camera.\n");
             return false;
         }
+        // test
+        static bool previousButtonState = false;
+        static bool buttonMessageVisible = false;
 
         while(true) {
 #ifdef INTERACTIVE_MODE
             AwaitUserInput(); // Wait for user input before moving forward.
 #endif /* INTERACTIVE_MODE */
 
+            info("Before display clear\n");
             hal_display_clear(COLOR_BLACK);
+            info("After display clear\n");
             hal_camera_start();
+            info("Camera started\n");
 
             /* Strings for presentation/logging. */
             std::string str_inf{"Running inference... "};
 
             uint32_t capturedFrameSize = 0;
             const uint8_t* imgSrc = hal_camera_get_captured_frame(&capturedFrameSize);
+            info("Frame pointer=%p, size=%" PRIu32 "\n",
+                static_cast<const void*>(imgSrc),
+                capturedFrameSize);
             if (!imgSrc || !capturedFrameSize) {
                 break;
             }
+
+            const bool currentButtonState = platform_button_is_pressed(0);
+
+            if (currentButtonState && !previousButtonState) {
+                buttonMessageVisible = true;
+                info("FVP button pressed!\n");
+            }
+
+            previousButtonState = currentButtonState;
 
             /* Display this image on the LCD. */
             hal_display_show_image(imgSrc,
@@ -200,6 +228,21 @@ namespace app {
 
             /* Add results to context for access outside handler. */
             ctx.Set<std::vector<ClassificationResult>>("results", results);
+
+            if (buttonMessageVisible) {
+                const char message[] = "FVP button pressed!";
+
+                info("%s\n", message);
+
+                hal_display_set_text_color(COLOR_GREEN);
+                hal_display_show_text(
+                    message,
+                    sizeof(message) - 1,
+                    10,
+                    220,
+                    false
+                );
+            }
 
 #if VERIFY_TEST_OUTPUT
             arm::app::DumpTensor(outputTensor);
