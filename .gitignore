@@ -17,6 +17,7 @@ CMakeFiles
 CMakeUserPresets.json
 build*/
 cmake-build-*/
+vela_output/
 
 # Python
 __pycache__/

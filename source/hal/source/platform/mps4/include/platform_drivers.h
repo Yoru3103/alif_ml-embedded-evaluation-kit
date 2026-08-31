@@ -42,4 +42,6 @@ void platform_release(void);
  */
 const char* platform_name(void);
 
+bool platform_button_is_pressed(uint32_t buttonIndex);
+
 #endif /* PLATFORM_DRIVERS_H */

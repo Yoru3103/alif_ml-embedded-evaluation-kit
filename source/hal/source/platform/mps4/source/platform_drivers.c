@@ -120,6 +120,23 @@ const char* platform_name(void)
     return s_platform_name;
 }
 
+void platform_ethosu_inference_begin(void)
+{
+}
+
+void platform_ethosu_inference_end(void)
+{
+}
+
+bool platform_button_is_pressed(uint32_t buttonIndex)
+{
+    if (buttonIndex >= 2U) {
+        return false;
+    }
+
+    return (MPS4_FPGAIO->BUTTON & (1UL << buttonIndex)) != 0U;
+}
+
 #define CREATE_MASK(msb, lsb)           (int)(((1U << ((msb) - (lsb) + 1)) - 1) << (lsb))
 #define MASK_BITS(arg, msb, lsb)        (int)((arg) & CREATE_MASK(msb, lsb))
 #define EXTRACT_BITS(arg, msb, lsb)     (int)(MASK_BITS(arg, msb, lsb) >> (lsb))

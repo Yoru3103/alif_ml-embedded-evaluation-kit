@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2025 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2025-2026 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -48,6 +48,7 @@ endif ()
 # Create static library
 add_library(${ML_FWK_TFLM_TARGET} STATIC
     YoloFastestModel.cc
+    YoloV8Model.cc
     AdModel.cc
     MicroNetKwsModel.cc
     Wav2LetterModel.cc

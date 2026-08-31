@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Arm Limited and/or
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Arm Limited and/or
  * its affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -347,14 +347,26 @@ int hal_display_show_box(const uint32_t pos_x, const uint32_t pos_y,
     assert(dev->initialized);
 
     /* If not within the LCD bounds, return error. */
-    if (pos_x > dev->hor_res || pos_y > dev->ver_res) {
+    if (pos_x >= dev->hor_res || pos_y >= dev->ver_res) {
         return 1;
     }
 
-    /** TODO: Draw lines for a box */
-    UNUSED(width);
-    UNUSED(height);
-    UNUSED(color);
+    const uint32_t draw_width =
+        width < (dev->hor_res - pos_x) ? width : (dev->hor_res - pos_x);
+    const uint32_t draw_height =
+        height < (dev->ver_res - pos_y) ? height : (dev->ver_res - pos_y);
+    const struct pixel_value pixel = get_color_from_rgb565(color);
+    struct pixel_value* framebuffer = (struct pixel_value*)HDLCD_FRAME_BUFFER_BASE_ADDRESS;
+
+    for (uint32_t y = 0; y < draw_height; ++y) {
+        struct pixel_value* row =
+            framebuffer + ((pos_y + y) * HDLCD_RES_WIDTH) + pos_x;
+
+        for (uint32_t x = 0; x < draw_width; ++x) {
+            row[x] = pixel;
+        }
+    }
+
     return 0;
 }
 

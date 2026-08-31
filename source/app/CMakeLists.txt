@@ -150,7 +150,8 @@ foreach(use_case ${USE_CASES})
     target_include_directories(${UC_LIB_NAME} PUBLIC
         ${APPLICATION_INCLUDE_DIRS}
         ${UC_INCLUDE}
-        ${INC_GEN_DIR})
+        ${INC_GEN_DIR}
+        ${SAMPLES_GEN_DIR})
 
     # Set the activation buffer size
     target_compile_definitions(${UC_LIB_NAME} PUBLIC
