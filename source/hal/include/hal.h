@@ -34,7 +34,7 @@ extern "C" {
 #include "hal_display.h"        /* Display interface */
 #include "hal_audio.h"          /* Audio interface */
 #include "hal_camera.h"         /* Camera interface */
-#include "hal_audio_alif.h"     /* Alif AUDIO functions */
+// #include "hal_audio_alif.h"     /* Alif AUDIO functions */
 
 #include <inttypes.h>
 #include <stdbool.h>

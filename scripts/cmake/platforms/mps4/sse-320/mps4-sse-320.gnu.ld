@@ -160,6 +160,13 @@ SECTIONS
     . = ALIGN(16);
   } > SRAM AT > SRAM
 
+.activation_buf.at_ddr (NOLOAD) :
+{
+    . = ALIGN(16);
+    *(.bss.NoInit.activation_buf_dram)
+    . = ALIGN(16);
+} > DDR
+
   .bss :
   {
     . = ALIGN(4);
@@ -224,8 +231,8 @@ SECTIONS
     *Labels*.obj (*.rodata*)
     . = ALIGN (16);
     /* activation buffers a.k.a tensor arena when memory mode dedicated sram */
-    *(.bss.NoInit.activation_buf_dram)
-    . = ALIGN (16);
+    /* *(.bss.NoInit.activation_buf_dram)
+    . = ALIGN (16); */
   } > DDR AT > DDR
 
 }
