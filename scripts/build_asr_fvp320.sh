@@ -3,6 +3,9 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
+# -e: errexit 某条命令返回非 0 时，脚本立即退出
+# -u: nounset 使用未定义变量时立即报错退出
+# -o pipefail: 管道错误传播 管道中任意命令失败，整个管道视为失败
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
