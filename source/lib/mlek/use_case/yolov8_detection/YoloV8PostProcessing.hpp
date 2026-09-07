@@ -43,6 +43,30 @@ private:
     YoloV8PostProcessParams m_params;
 };
 
+/**
+ * @brief Post-processes the four-output INT8 NHWC YOLOv8 model.
+ *
+ * The model has three feature maps containing 64 DFL box values followed by
+ * the class logits, plus one concatenated objectness output.
+ */
+class YoloV8NewPostProcess : public BasePostProcess {
+public:
+    YoloV8NewPostProcess(
+        const std::vector<std::shared_ptr<fwk::iface::TensorIface>>& outputTensors,
+        std::vector<yolov8_detection::DetectionResult>& results,
+        const YoloV8PostProcessParams& params);
+
+    bool DoPostProcess() override;
+
+private:
+    static constexpr size_t ms_dflBins = 16;
+    static constexpr size_t ms_dflValues = 4 * ms_dflBins;
+
+    std::vector<std::shared_ptr<fwk::iface::TensorIface>> m_outputTensors;
+    std::vector<yolov8_detection::DetectionResult>& m_results;
+    YoloV8PostProcessParams m_params;
+};
+
 } /* namespace arm::app */
 
 #endif // !YOLOV8_POST_PROCESSING_HPP
