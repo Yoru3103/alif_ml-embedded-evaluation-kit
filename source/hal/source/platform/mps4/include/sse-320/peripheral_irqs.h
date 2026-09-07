@@ -100,12 +100,11 @@
 
 /** 127 reserved */
 
-#define RTC_IRQn                           (128) /* RTC Interrupt */
+#define HDLCD_IRQn                         (128) /* FI101 HDMI HDLCD Interrupt */
 
-/** 129-131 are reserved */
+/** 129 is reserved */
 
-#define ISP_IRQn                           (132) /* ISP C55 Interrupt */
-#define HDLCD_IRQn                         (133) /* HDLCD Interrupt */
+#define ISP_IRQn                           (130) /* FI101 CSI Receiver Interrupt */
 
 /** 134-223 are reserved */
 

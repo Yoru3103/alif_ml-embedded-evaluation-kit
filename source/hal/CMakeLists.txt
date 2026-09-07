@@ -9,7 +9,7 @@
 #  contact@alifsemi.com, or visit: https://alifsemi.com/license
 
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022, 2025 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2022, 2025-2026 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -83,6 +83,14 @@ if (COMMAND platform_custom_post_build)
     add_executable(hal-test EXCLUDE_FROM_ALL source/hal_test.c)
     target_link_libraries(hal-test PRIVATE ${HAL_TARGET})
     platform_custom_post_build(TARGET_NAME hal-test)
+endif()
+
+option(BUILD_UART_HELLO_TEST "Build the minimal UART hello-world test" OFF)
+
+if (BUILD_UART_HELLO_TEST AND COMMAND platform_custom_post_build)
+    add_executable(uart-hello-test EXCLUDE_FROM_ALL source/uart_hello_test.c)
+    target_link_libraries(uart-hello-test PRIVATE stdout_retarget_cmsdk cmsis_device)
+    platform_custom_post_build(TARGET_NAME uart-hello-test)
 endif()
 
 # Display status:

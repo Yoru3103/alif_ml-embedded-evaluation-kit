@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2024-2025 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2024-2026 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -31,10 +31,12 @@ if (NOT ${CMAKE_CROSSCOMPILING})
     message(FATAL_ERROR "No ${PLATFORM_DRIVERS_TARGET} support for this target.")
 endif()
 
+option(MPS4_HDLCD_ENABLED "Enable the MPS4 HDLCD display controller" ON)
+
 # Define target specific base addresses here (before adding the components)
-set(UART0_BASE              "0x48203000"    CACHE STRING "UART base address")
+set(UART0_BASE              "0x59303000"    CACHE STRING "UART base address")
 set(UART0_BAUDRATE          "115200"        CACHE STRING "UART baudrate")
-set(SYSTEM_CORE_CLOCK       "25000000"      CACHE STRING "System peripheral clock (Hz)")
+set(SYSTEM_CORE_CLOCK       "50000000"      CACHE STRING "System peripheral clock (Hz)")
 
 set(ETHOS_U_IRQN            "16"            CACHE STRING "Ethos-U Interrupt")
 set(ETHOS_U_SEC_ENABLED     "1"             CACHE STRING "Ethos-U NPU Security enable")
@@ -54,22 +56,22 @@ else ()
     endif()
 endif ()
 
-set(DYNAMIC_MODEL_BASE   "0x90000000"   CACHE STRING "Region to be used for dynamic load of model into memory")
+set(DYNAMIC_MODEL_BASE   "0x72000000"   CACHE STRING "FI101 DDR region reserved for dynamic model" FORCE)
 set(DYNAMIC_MODEL_SIZE   "0x02000000"   CACHE STRING "Size of the space reserved for the model")
 
 math(EXPR IFM_BASE      "${DYNAMIC_MODEL_BASE} + ${DYNAMIC_MODEL_SIZE}" OUTPUT_FORMAT HEXADECIMAL)
-set(DYNAMIC_IFM_BASE    "${IFM_BASE}" CACHE STRING "Base address for IFMs to be loaded")
+set(DYNAMIC_IFM_BASE    "${IFM_BASE}" CACHE STRING "Base address for IFMs to be loaded" FORCE)
 set(DYNAMIC_IFM_SIZE    "0x01000000" CACHE STRING "Size of the space reserved for the IFM")
 math(EXPR OFM_BASE      "${DYNAMIC_IFM_BASE} + ${DYNAMIC_IFM_SIZE}" OUTPUT_FORMAT HEXADECIMAL)
-set(DYNAMIC_OFM_BASE    "${OFM_BASE}" CACHE STRING "Base address for OFMs to be dumped to")
+set(DYNAMIC_OFM_BASE    "${OFM_BASE}" CACHE STRING "Base address for OFMs to be dumped to" FORCE)
 set(DYNAMIC_OFM_SIZE    "0x01000000" CACHE STRING "Size of the space reserved for the OFM")
 math(EXPR TMP_BASE      "${DYNAMIC_OFM_BASE} + ${DYNAMIC_OFM_SIZE}" OUTPUT_FORMAT HEXADECIMAL)
-set(ML_FWK_TMP_MEM_BASE "${TMP_BASE}" CACHE STRING "Region used by ML framework for any temporary allocations")
+set(ML_FWK_TMP_MEM_BASE "${TMP_BASE}" CACHE STRING "Region used by ML framework for any temporary allocations" FORCE)
 set(ML_FWK_TMP_MEM_SIZE "0x02000000" CACHE STRING "Buffer size for ML framework's temporary allocations")
 
 # HDLCD parameters
 math(EXPR FB_BASE       "${ML_FWK_TMP_MEM_BASE} + ${ML_FWK_TMP_MEM_SIZE}" OUTPUT_FORMAT HEXADECIMAL)
-set(HDLCD_FRAME_BUFFER_BASE_ADDRESS "${FB_BASE}" CACHE STRING "HDLCD buffer region.")
+set(HDLCD_FRAME_BUFFER_BASE_ADDRESS "${FB_BASE}" CACHE STRING "HDLCD buffer region." FORCE)
 
 # Although the device is capable of better resolutions,
 # we currently stick to the resolution that is supported
@@ -97,7 +99,8 @@ target_compile_definitions(${PLATFORM_DRIVERS_TARGET} PRIVATE
     HDLCD_FRAME_BUFFER_BASE_ADDRESS=${HDLCD_FRAME_BUFFER_BASE_ADDRESS}
     HDLCD_BYTES_PER_PIXEL=${HDLCD_BYTES_PER_PIXEL}
     HDLCD_RES_WIDTH=${HDLCD_RES_WIDTH}
-    HDLCD_RES_HEIGHT=${HDLCD_RES_HEIGHT})
+    HDLCD_RES_HEIGHT=${HDLCD_RES_HEIGHT}
+    MPS4_HDLCD_ENABLED=${MPS4_HDLCD_ENABLED})
 
 ## Platform sources
 target_sources(${PLATFORM_DRIVERS_TARGET}
@@ -147,7 +150,8 @@ target_link_libraries(${PLATFORM_DRIVERS_TARGET} PUBLIC
     hal_log
     cmsis_device
     platform_pmu
-    hal_display_mps4
+    $<$<BOOL:${MPS4_HDLCD_ENABLED}>:hal_display_mps4>
+    $<$<NOT:$<BOOL:${MPS4_HDLCD_ENABLED}>>:hal_display_stubs>
     hal_audio_static_streams
     $<IF:$<BOOL:${FVP_VSI_ENABLED}>,hal_camera_vsi,hal_camera_static_images>
     $<$<NOT:$<BOOL:${SEMIHOSTING_ENABLED}>>:stdout_retarget_cmsdk>)

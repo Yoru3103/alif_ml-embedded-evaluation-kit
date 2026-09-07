@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  SPDX-FileCopyrightText: Copyright 2022, 2024-2025 Arm Limited and/or its
+#  SPDX-FileCopyrightText: Copyright 2022, 2024-2026 Arm Limited and/or its
 #  affiliates <open-source-office@arm.com>
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -57,7 +57,8 @@ else()
     message(FATAL_ERROR "Couldn't work out Ethos-U number of MACS from ${ETHOS_U_NPU_CONFIG_ID}")
 endif()
 set(ETHOSU_TARGET_NPU_CONFIG
-        "ethos-${ETHOS_U_NPU_ID}-${ETHOSU_MACS}" CACHE STRING "Target Ethos-U configuration for driver.")
+        "ethos-${ETHOS_U_NPU_ID}-${ETHOSU_MACS}" CACHE STRING
+        "Target Ethos-U configuration for driver." FORCE)
 
 if (NOT DEFINED ETHOS_U_NPU_MEMORY_MODE)
     set(ETHOS_U_NPU_MEMORY_MODE Shared_Sram)

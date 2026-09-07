@@ -9,7 +9,6 @@
 #include "UseCaseCommonUtils.hpp"
 #include "hal.h"
 #include "mlek/common/ImageUtils.hpp"
-#include "mlek/fwk/tflm/YoloV8Model.hpp"
 #include "mlek/log/log_macros.h"
 #include "mlek/use_case/yolov8_detection/YoloV8PreProcessing.hpp"
 #include "mlek/use_case/yolov8_detection/YoloV8PostProcessing.hpp"
@@ -17,6 +16,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -116,6 +116,67 @@ void PresentResults(const std::vector<yolov8_detection::DetectionResult>& result
     }
 }
 
+bool GetInputImageDimensions(
+    const std::vector<size_t>& shape,
+    uint32_t& imageWidth,
+    uint32_t& imageHeight,
+    bool& isNchw)
+{
+    if (shape.size() != 4 || shape[0] != 1) {
+        return false;
+    }
+
+    if (shape[1] == 3 && shape[3] != 3) {
+        isNchw = true;
+        imageHeight = static_cast<uint32_t>(shape[2]);
+        imageWidth = static_cast<uint32_t>(shape[3]);
+        return true;
+    }
+
+    if (shape[3] == 3 && shape[1] != 3) {
+        isNchw = false;
+        imageHeight = static_cast<uint32_t>(shape[1]);
+        imageWidth = static_cast<uint32_t>(shape[2]);
+        return true;
+    }
+
+    return false;
+}
+
+bool GetNewModelNumClasses(const fwk::iface::Model& model, uint32_t& numClasses)
+{
+    constexpr size_t dflValues = 4 * 16;
+    bool foundFeatureMap = false;
+
+    for (size_t index = 0; index < model.GetNumOutputs(); ++index) {
+        const auto tensor = model.GetOutputTensor(index);
+        if (tensor == nullptr) {
+            return false;
+        }
+
+        const auto shape = tensor->Shape();
+        if (shape.size() != 4) {
+            continue;
+        }
+
+        if (shape[0] != 1 || shape[1] == 0 || shape[2] == 0 ||
+            shape[3] <= dflValues) {
+            return false;
+        }
+
+        const uint32_t featureMapClasses =
+            static_cast<uint32_t>(shape[3] - dflValues);
+        if (!foundFeatureMap) {
+            numClasses = featureMapClasses;
+            foundFeatureMap = true;
+        } else if (numClasses != featureMapClasses) {
+            return false;
+        }
+    }
+
+    return foundFeatureMap && numClasses > 0;
+}
+
 } /* anonymous namespace */
 
 bool YoloV8DetectionHandler(ApplicationContext& ctx)
@@ -130,27 +191,61 @@ bool YoloV8DetectionHandler(ApplicationContext& ctx)
         return false;
     }
 
-    if (model.GetNumInputs() != 1 || model.GetNumOutputs() != 1) {
-        printf_err("YOLOv8 model must have one input and one output\n");
-        return false;
-    }
-
-    if (labels.size() != YOLOV8_NUM_CLASSES) {
-        printf_err("YOLOv8 label count does not match the configured class count\n");
+    if (model.GetNumInputs() != 1 ||
+        (model.GetNumOutputs() != 1 && model.GetNumOutputs() != 4)) {
+        printf_err("YOLOv8 model must have one input and either one or four outputs\n");
         return false;
     }
 
     auto inputTensor = model.GetInputTensor(0);
-    auto outputTensor = model.GetOutputTensor(0);
-    const auto inputShape = inputTensor->Shape();
-
-    if (inputShape.size() != 4 || inputShape[fwk::tflm::YoloV8Model::ms_inputChannelsIdx] != 3) {
-        printf_err("Expected input shape [1, 3, H, W]\n");
+    if (inputTensor == nullptr) {
+        printf_err("YOLOv8 input tensor is unavailable\n");
         return false;
     }
 
-    const uint32_t imageHeight = inputShape[fwk::tflm::YoloV8Model::ms_inputRowsIdx];
-    const uint32_t imageWidth = inputShape[fwk::tflm::YoloV8Model::ms_inputColsIdx];
+    const auto inputShape = inputTensor->Shape();
+    uint32_t imageWidth = 0;
+    uint32_t imageHeight = 0;
+    bool isNchw = false;
+
+    if (!GetInputImageDimensions(inputShape, imageWidth, imageHeight, isNchw)) {
+        printf_err("Expected input shape [1, 3, H, W] or [1, H, W, 3]\n");
+        return false;
+    }
+
+    const bool isNewModel = model.GetNumOutputs() == 4;
+    uint32_t modelNumClasses = YOLOV8_NUM_CLASSES;
+    if (isNewModel) {
+        if (!GetNewModelNumClasses(model, modelNumClasses)) {
+            printf_err("Unable to determine new YOLOv8 model class count\n");
+            return false;
+        }
+
+        if (labels.size() < modelNumClasses) {
+            printf_err("Not enough labels for the new YOLOv8 model\n");
+            return false;
+        }
+
+        if (labels.size() != modelNumClasses) {
+            info("Using the first %" PRIu32 " labels for the new YOLOv8 model\n",
+                 modelNumClasses);
+        }
+    } else if (labels.size() != YOLOV8_NUM_CLASSES) {
+        printf_err("YOLOv8 label count does not match the configured class count\n");
+        return false;
+    }
+
+    if (isNewModel &&
+        (isNchw || inputTensor->Type() != fwk::iface::TensorType::INT8)) {
+        printf_err("The new YOLOv8 model must use an NHWC INT8 input\n");
+        return false;
+    }
+
+    if (!isNewModel &&
+        (!isNchw || inputTensor->Type() != fwk::iface::TensorType::FP32)) {
+        printf_err("The original YOLOv8 model must use an NCHW FP32 input\n");
+        return false;
+    }
 
     if (get_sample_img_width() != imageWidth ||
         get_sample_img_height() != imageHeight) {
@@ -164,12 +259,24 @@ bool YoloV8DetectionHandler(ApplicationContext& ctx)
     YoloV8PostProcessParams params{
         imageWidth,
         imageHeight,
-        YOLOV8_NUM_CLASSES,
+        isNewModel ? 0U : YOLOV8_NUM_CLASSES,
         YOLOV8_MAX_DETECTIONS,
         YOLOV8_SCORE_THRESHOLD,
         YOLOV8_NMS_THRESHOLD
     };
-    YoloV8PostProcess postProcess{outputTensor, results, params};
+    std::unique_ptr<BasePostProcess> postProcess;
+    if (isNewModel) {
+        std::vector<std::shared_ptr<fwk::iface::TensorIface>> outputTensors;
+        outputTensors.reserve(model.GetNumOutputs());
+        for (size_t index = 0; index < model.GetNumOutputs(); ++index) {
+            outputTensors.push_back(model.GetOutputTensor(index));
+        }
+        postProcess = std::make_unique<YoloV8NewPostProcess>(
+            outputTensors, results, params);
+    } else {
+        postProcess = std::make_unique<YoloV8PostProcess>(
+            model.GetOutputTensor(0), results, params);
+    }
 
     constexpr uint32_t imageStartX = 10;
     constexpr uint32_t imageStartY = 35;
@@ -232,7 +339,7 @@ bool YoloV8DetectionHandler(ApplicationContext& ctx)
             return false;
         }
 
-        if (!postProcess.DoPostProcess()) {
+        if (!postProcess->DoPostProcess()) {
             printf_err("Post-processing failed\n");
             return false;
         }
@@ -247,7 +354,11 @@ bool YoloV8DetectionHandler(ApplicationContext& ctx)
             downscale);
 
 #if VERIFY_TEST_OUTPUT
-        DumpTensor(outputTensor);
+        for (size_t outputIndex = 0; outputIndex < model.GetNumOutputs(); ++outputIndex) {
+            const auto output = model.GetOutputTensor(outputIndex);
+            DumpTensorData(
+                static_cast<const uint8_t*>(output->GetData()), output->Bytes());
+        }
 #endif
 
         profiler.PrintProfilingResult();

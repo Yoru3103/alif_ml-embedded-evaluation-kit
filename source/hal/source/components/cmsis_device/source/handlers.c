@@ -38,6 +38,11 @@ static void LogCoreCPURegisters(void)
     printf("PRIMASK : 0x%08" PRIx32 "\n", __get_PRIMASK());
     printf("BASEPRI : 0x%08" PRIx32 "\n", __get_BASEPRI());
     printf("FAULTMSK: 0x%08" PRIx32 "\n", __get_FAULTMASK());
+    printf("CFSR    : 0x%08" PRIx32 "\n", SCB->CFSR);
+    printf("HFSR    : 0x%08" PRIx32 "\n", SCB->HFSR);
+    printf("SHCSR   : 0x%08" PRIx32 "\n", SCB->SHCSR);
+    printf("MMFAR   : 0x%08" PRIx32 "\n", SCB->MMFAR);
+    printf("BFAR    : 0x%08" PRIx32 "\n", SCB->BFAR);
 }
 
 /**

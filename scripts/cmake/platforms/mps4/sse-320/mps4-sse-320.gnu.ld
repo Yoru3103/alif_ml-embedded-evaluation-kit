@@ -32,9 +32,9 @@ MEMORY
   /* Dynamic load regions declared for use by FVP only
    * These regions are mentioned in the CMake subsystem profile.
    * Do not change the addresses here in isolation. */
-  DDR_dynamic_model (rx) : ORIGIN = 0x90000000, LENGTH = 0x02000000
-  DDR_dynamic_ifm   (rx) : ORIGIN = 0x92000000, LENGTH = 0x01000000
-  DDR_dynamic_ofm   (rx) : ORIGIN = 0x93000000, LENGTH = 0x01000000
+  DDR_dynamic_model (rx) : ORIGIN = 0x72000000, LENGTH = 0x02000000
+  DDR_dynamic_ifm   (rx) : ORIGIN = 0x74000000, LENGTH = 0x01000000
+  DDR_dynamic_ofm   (rx) : ORIGIN = 0x75000000, LENGTH = 0x01000000
 }
 
 /* Linker script to place sections and symbol values. Should be used together
@@ -75,6 +75,7 @@ SECTIONS
   {
     KEEP(*(.vectors))
   } > BOOT AT > BOOT
+
 
   .text.at_bram :
   {
@@ -132,6 +133,13 @@ SECTIONS
     __copy_table_start__ = .;
     . = ALIGN(4);
     __copy_table_end__ = .;
+  } > BRAM
+
+  /* Writable vector table copy used by NVIC_SetVector(). */
+  .vtable_rw (NOLOAD) :
+  {
+    . = ALIGN(2048);
+    KEEP(*(.vtable_rw))
   } > BRAM
 
   __exidx_start = .;

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Arm Limited and/or its affiliates
+ * SPDX-FileCopyrightText: Copyright 2024, 2026 Arm Limited and/or its affiliates
  * <open-source-office@arm.com> SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,7 +115,7 @@
 #define AHB_USER_1_BASE_S                0x50105000 /* AHB USER 1 Secure base address */
 #define AHB_USER_2_BASE_S                0x50106000 /* AHB USER 2 Secure base address */
 #define AHB_USER_3_BASE_S                0x50107000 /* AHB USER 3 Secure base address */
-#define HDLCD_BASE_S                     0x50310000 /* HDLCD Secure base address */
+#define HDLCD_BASE_S                     0x5930A000 /* FI101 HDLCD Secure base address */
 #define ETHERNET_BASE_S                  0x50400000 /* Ethernet Secure base address */
 #define USB_BASE_S                       0x50500000 /* USB Secure base address */
 #define USER_APB0_BASE_S                 0x50700000 /* User APB 0 Secure base address */
@@ -158,15 +158,15 @@
 #define SBCon_I2C_SHIELD1_BASE_S         0x58106000 /* SBCon (I2C – Shield1) Secure base address */
 #define USER_APB_BASE_S                  0x58107000 /* USER APB Secure base address */
 #define FPGA_DDR4_EEPROM_BASE_S          0x58108000 /* FPGA - SBCon I2C (DDR4 EEPROM) Secure base address */
-#define FPGA_SCC_BASE_S                  0x58200000 /* FPGA - SCC registers Secure base address */
+#define FPGA_SCC_BASE_S                  0x59300000 /* FI101 SCC registers Secure base address */
 #define FPGA_I2S_BASE_S                  0x58201000 /* FPGA - I2S (Audio) Secure base address */
-#define FPGA_IO_BASE_S                   0x58202000 /* FPGA - IO (System Ctrl + I/O) Secure base address */
-#define UART0_BASE_S                     0x58203000 /* UART 0 Secure base address */
-#define UART1_BASE_S                     0x58204000 /* UART 1 Secure base address */
-#define UART2_BASE_S                     0x58205000 /* UART 2 Secure base address */
-#define UART3_BASE_S                     0x58206000 /* UART 3 Secure base address */
-#define UART4_BASE_S                     0x58207000 /* UART 4 Secure base address */
-#define UART5_BASE_S                     0x58208000 /* UART 5 Secure base address */
+#define FPGA_IO_BASE_S                   0x59302000 /* FI101 FPGA IO Secure base address */
+#define UART0_BASE_S                     0x59303000 /* FI101 UART 0 Secure base address */
+#define UART1_BASE_S                     0x59304000 /* FI101 UART 1 Secure base address */
+#define UART2_BASE_S                     0x59305000 /* FI101 UART 2 Secure base address */
+#define UART3_BASE_S                     0x59307000 /* FI101 UART 3 Secure base address */
+#define UART4_BASE_S                     0x59306000 /* FI101 UART 4 Secure base address */
+#define UART5_BASE_S                     0x59308000 /* FI101 UART 5 Secure base address */
 #define RTC_BASE_S                       0x5820B000 /* RTC Secure base address */
 
 #define VSOCKET_BASE_S                   0x5FEE0000 /*!< VSOCKET Secure base address */

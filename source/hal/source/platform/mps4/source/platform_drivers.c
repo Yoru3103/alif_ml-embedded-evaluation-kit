@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024-2025 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2024-2026 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -24,6 +24,28 @@
 #include "peripheral_irqs.h"    /* Interrupt numbers */
 
 #include <string.h>
+
+#define MPS4_VTABLE_SIZE 496U
+
+/* The CMSIS vector table is loaded in BOOT, which is read-only at run time.
+ * NVIC_SetVector() needs a writable copy for dynamically registered IRQs. */
+static uint32_t mps4_vtable_rw[MPS4_VTABLE_SIZE]
+    __attribute__((used, aligned(2048), section(".vtable_rw")));
+
+static void mps4_remap_vector_table(void)
+{
+    const uint32_t vtable_address = (uint32_t)mps4_vtable_rw;
+
+    if (SCB->VTOR != vtable_address) {
+        __disable_irq();
+        memcpy(mps4_vtable_rw, (const void *)SCB->VTOR,
+               sizeof(mps4_vtable_rw));
+        SCB->VTOR = vtable_address;
+        __DSB();
+        __ISB();
+        __enable_irq();
+    }
+}
 
 #if defined(ARM_NPU)
 #include "ethosu_npu_init.h"
@@ -50,7 +72,9 @@ static int verify_platform(void);
  * @brief   Initialises the HDLCD for MPS4 platform
  * @return  0 if successful, error code otherwise.
  */
+#if MPS4_HDLCD_ENABLED
 static int platform_hdlcd_init(void);
+#endif /* MPS4_HDLCD_ENABLED */
 
 /** Platform name */
 static const char* s_platform_name = DESIGN_NAME;
@@ -60,6 +84,7 @@ int platform_init(void)
     int err = 0;
 
     SystemCoreClockUpdate();    /* From start up code */
+    mps4_remap_vector_table();
 
 #if !defined(USE_SEMIHOSTING)
     /* UART init - will enable valid use of printf (stdout
@@ -100,10 +125,14 @@ int platform_init(void)
 
 #endif /* ARM_NPU */
 
-    /* Initialise HDLCD device. */
+    /* Initialise HDLCD only when a display is present. */
+#if MPS4_HDLCD_ENABLED
     if (0 != (state = platform_hdlcd_init())) {
         return state;
     }
+#else
+    info("HDLCD disabled; running without a display.\n");
+#endif
 
     /* Print target design info */
     info("Target system design: %s\n", s_platform_name);
@@ -134,7 +163,7 @@ bool platform_button_is_pressed(uint32_t buttonIndex)
         return false;
     }
 
-    return (MPS4_FPGAIO->BUTTON & (1UL << buttonIndex)) != 0U;
+    return (MPS4_FPGAIO_S->BUTTON & (1UL << buttonIndex)) != 0U;
 }
 
 #define CREATE_MASK(msb, lsb)           (int)(((1U << ((msb) - (lsb) + 1)) - 1) << (lsb))
@@ -152,14 +181,14 @@ static int verify_platform(void)
     const uint32_t ascii_A = (uint32_t)('A');
 
     /* Initialise the LEDs as the switches are */
-    MPS4_FPGAIO->LED = MPS4_FPGAIO->SWITCHES & 0xFF;
+    MPS4_FPGAIO_S->LED = MPS4_FPGAIO_S->SWITCHES & 0xFF;
 
     info("Processor internal clock: %" PRIu32 "Hz\n", get_mps4_core_clock());
 
     /* Get revision information from various registers */
-    rev = MPS4_SCC->CFG_REG4;
-    fpgaid = MPS4_SCC->SCC_ID;
-    aid = MPS4_SCC->SCC_AID;
+    rev = MPS4_SCC_S->CFG_REG4;
+    fpgaid = MPS4_SCC_S->SCC_ID;
+    aid = MPS4_SCC_S->SCC_AID;
     apnote = EXTRACT_BITS(fpgaid, 15, 4);
     fpga_clk = get_mps4_core_clock();
 
@@ -216,6 +245,8 @@ static int verify_platform(void)
     return 1;
 }
 
+#if MPS4_HDLCD_ENABLED
+
 static const struct hdlcd_dev_cfg_t HDLCD_DEV_CFG_S = {
     .base = HDLCD_BASE_S,
     .polarities = (POLARITIES_DATA_POLARITY_Msk |
@@ -233,21 +264,6 @@ static struct hdlcd_dev_t HDLCD_DEV_S = {
 static struct hdlcd_dev_t* platform_get_hdlcd_dev()
 {
     return &HDLCD_DEV_S;
-}
-
-static void HDLCD_Handler(void)
-{
-    /* Clear IRQ */
-    hdlcd_clear_irq(platform_get_hdlcd_dev(), INT_DMA_END_Msk);
-    __NVIC_ClearPendingIRQ(HDLCD_IRQn);
-}
-
-static void enable_hdlcd_irq(void)
-{
-    NVIC_ClearPendingIRQ(HDLCD_IRQn);
-    NVIC_SetVector(HDLCD_IRQn, (uint32_t)HDLCD_Handler);
-    NVIC_EnableIRQ(HDLCD_IRQn);
-    hdlcd_enable_irq(platform_get_hdlcd_dev(), INT_DMA_END_Msk);
 }
 
 static int platform_hdlcd_init(void)
@@ -283,7 +299,9 @@ static int platform_hdlcd_init(void)
         return hdlcd_err;
     }
     info("HDLCD resolution id: %d\n", res);
-    enable_hdlcd_irq();
+    /* FI101 display operation does not require the HDLCD interrupt. */
+    NVIC_DisableIRQ(HDLCD_IRQn);
+    hdlcd_disable_irq(hdlcd_dev, INT_DMA_END_Msk);
 
     struct hdlcd_buffer_cfg_t cfg = {
         .base_address = HDLCD_FRAME_BUFFER_BASE_ADDRESS,
@@ -327,3 +345,4 @@ static int platform_hdlcd_init(void)
     debug("HDLCD device initialised.\n");
     return 0;
 }
+#endif /* MPS4_HDLCD_ENABLED */

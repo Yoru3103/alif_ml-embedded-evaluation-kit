@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024-2025 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2024-2026 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -70,9 +70,9 @@ void platform_final_counters(void)
 
 void platform_reset_counters(void)
 {
-    MPS4_FPGAIO->CLK1HZ   = 0;
-    MPS4_FPGAIO->CLK100HZ = 0;
-    MPS4_FPGAIO->COUNTER  = 0;
+    MPS4_FPGAIO_S->CLK1HZ   = 0;
+    MPS4_FPGAIO_S->CLK100HZ = 0;
+    MPS4_FPGAIO_S->COUNTER  = 0;
 
     if (0 != Init_SysTick()) {
         printf_err("Failed to initialise system tick config\n");
@@ -117,9 +117,9 @@ void platform_get_counters(pmu_counters* counters)
 
 #if defined(CPU_PROFILE_ENABLED)
     mps4_pmu_counters mps4_counters = {
-            .counter_1Hz        = MPS4_FPGAIO->CLK1HZ,
-            .counter_100Hz      = MPS4_FPGAIO->CLK100HZ,
-            .counter_fpga       = MPS4_FPGAIO->COUNTER,
+            .counter_1Hz        = MPS4_FPGAIO_S->CLK1HZ,
+            .counter_100Hz      = MPS4_FPGAIO_S->CLK100HZ,
+            .counter_fpga       = MPS4_FPGAIO_S->COUNTER,
             .counter_systick    = Get_SysTick_Cycle_Count()
     };
 
@@ -149,17 +149,11 @@ void platform_get_counters(pmu_counters* counters)
 
 uint32_t get_mps4_core_clock(void)
 {
-    const uint32_t default_clock = 32000000 /* 32 MHz clock */;
-    static int warned_once = 0;
-    if (0 != MPS4_SCC->CFG_ACLK) {
-        return MPS4_SCC->CFG_ACLK;
+    const uint32_t default_clock = 50000000 /* FI101 fixed 50 MHz core clock */;
+    if (0 != MPS4_SCC_S->CFG_ACLK) {
+        return MPS4_SCC_S->CFG_ACLK;
     }
 
-    if (!warned_once) {
-        warn("MPS4_SCC->CFG_ACLK reads 0. Assuming default clock of %" PRIu32 "\n",
-             default_clock);
-        warned_once = 1;
-    }
     return default_clock;
 }
 
