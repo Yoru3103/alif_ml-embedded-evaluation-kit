@@ -11,23 +11,23 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 # -----------------------------------------------------------------------------
 # User configuration: best_int8, 256x256, Shared_Sram (enabled by default).
 # -----------------------------------------------------------------------------
-# BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
-# MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_z256/best_int8_vela.tflite"
-# IMAGE_SIZE=256
-# DISPLAY_DOWNSCALE=2
-# ACTIVATION_BUF_SIZE=0x00200000
-# NPU_MEMORY_MODE=Shared_Sram
+BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
+MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_z256/best_int8_vela.tflite"
+IMAGE_SIZE=256
+DISPLAY_DOWNSCALE=2
+ACTIVATION_BUF_SIZE=0x00200000
+NPU_MEMORY_MODE=Shared_Sram
 
 # -----------------------------------------------------------------------------
 # Alternative: yolov8n_int8, 640x640, Dedicated_Sram.
 # Comment the block above and uncomment this block to use it.
 # -----------------------------------------------------------------------------
-BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8n"
-MODEL_PATH="${REPO_ROOT}/vela_output/yolov8n_int8_z256_dedicated/yolov8n_int8_vela.tflite"
-IMAGE_SIZE=640
-DISPLAY_DOWNSCALE=4
-ACTIVATION_BUF_SIZE=0x01000000
-NPU_MEMORY_MODE=Dedicated_Sram
+# BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8n"
+# MODEL_PATH="${REPO_ROOT}/vela_output/yolov8n_int8_z256_dedicated/yolov8n_int8_vela.tflite"
+# IMAGE_SIZE=640
+# DISPLAY_DOWNSCALE=4
+# ACTIVATION_BUF_SIZE=0x01000000
+# NPU_MEMORY_MODE=Dedicated_Sram
 
 # A directory is scanned recursively. Unsupported files such as YAML and Markdown
 # are skipped by the image generator.

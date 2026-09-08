@@ -11,12 +11,12 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 # -----------------------------------------------------------------------------
 # User configuration: select the build directory produced by the build script.
 # -----------------------------------------------------------------------------
-# BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
-# RUN_NAME=yolov8_best
+BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
+RUN_NAME=yolov8_best
 
 # Alternative yolov8n configuration:
-BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8n"
-RUN_NAME=yolov8n_int8
+# BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8n"
+# RUN_NAME=yolov8n_int8
 
 FVP_ROOT=/home/xx/FVP_Corstone_SSE-320
 FVP_RUNTIME="${FVP_ROOT}/scripts/runtime.sh"
@@ -27,7 +27,7 @@ LOG_FILE="${REPO_ROOT}/logs/${RUN_NAME}_fvp320.log"
 # Headless mode (enabled by default).
 BOARD_VISUALISATION_DISABLED=0
 HDLCD_VISUALISATION_DISABLED=0
-SHUTDOWN_ON_EOT=1
+SHUTDOWN_ON_EOT=0
 
 # GUI mode: comment the three values above and uncomment these values.
 # The board panel stays disabled while the independent HDLCD window is enabled.
