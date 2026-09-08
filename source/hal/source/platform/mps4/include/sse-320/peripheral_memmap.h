@@ -107,10 +107,10 @@
 #define LCM_BASE_S                       0x500A0000 /* LCM Secure base address */
 
 /** Secure MSTEXPPILL peripheral region */
-#define GPIO0_CMSDK_BASE_S               0x50100000 /* GPIO 0 Secure base address */
-#define GPIO1_CMSDK_BASE_S               0x50101000 /* GPIO 1 Secure base address */
-#define GPIO2_CMSDK_BASE_S               0x50102000 /* GPIO 2 Secure base address */
-#define GPIO3_CMSDK_BASE_S               0x50103000 /* GPIO 3 Secure base address */
+#define GPIO0_CMSDK_BASE_S               0x51100000 /* FI101 GPIO 0 Secure base address */
+#define GPIO1_CMSDK_BASE_S               0x51101000 /* FI101 GPIO 1 Secure base address */
+#define GPIO2_CMSDK_BASE_S               0x51102000 /* FI101 GPIO 2 Secure base address */
+#define GPIO3_CMSDK_BASE_S               0x51103000 /* FI101 GPIO 3 Secure base address */
 #define AHB_USER_0_BASE_S                0x50104000 /* AHB USER 0 Secure base address */
 #define AHB_USER_1_BASE_S                0x50105000 /* AHB USER 1 Secure base address */
 #define AHB_USER_2_BASE_S                0x50106000 /* AHB USER 2 Secure base address */

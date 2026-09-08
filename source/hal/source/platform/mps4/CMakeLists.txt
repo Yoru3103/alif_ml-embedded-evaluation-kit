@@ -106,6 +106,7 @@ target_compile_definitions(${PLATFORM_DRIVERS_TARGET} PRIVATE
 target_sources(${PLATFORM_DRIVERS_TARGET}
     PRIVATE
     source/timer_mps4.c
+    source/mps4_gpio.c
     source/hdlcd_drv.c
     source/platform_drivers.c)
 

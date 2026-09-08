@@ -17,14 +17,14 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 MODEL_VARIANT="${YOLOV8_MODEL_VARIANT:-best_int8}"
 case "${MODEL_VARIANT}" in
 best_int8)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-best"
     MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_z1024/best_int8_vela.tflite"
     LABELS_FILE="${REPO_ROOT}/resources/object_detection/samples/coco128.yaml"
     INPUT_PATH="${REPO_ROOT}/20260827_Model"
     NUM_CLASSES=80
     ;;
 best_int8_new)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best-new"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-best-new"
     MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_new_z1024/best_int8_new_vela.tflite"
     LABELS_FILE="${REPO_ROOT}/resources/object_detection/samples/labels_yolo15.txt"
     INPUT_PATH="${REPO_ROOT}/resources/object_detection/samples_best_new"
@@ -49,9 +49,12 @@ NPU_MEMORY_MODE=Shared_Sram
 # Alternative: yolov8n_int8, 640x640, Dedicated_Sram.
 # Comment the block above and uncomment this block to use it.
 # -----------------------------------------------------------------------------
-# BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8n"
-# MODEL_PATH="${REPO_ROOT}/vela_output/yolov8n_int8_z256_dedicated/yolov8n_int8_vela.tflite"
+# BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8n"
+# MODEL_PATH="${REPO_ROOT}/vela_output/yolov8n_int8_z1024_dedicated/yolov8n_int8_vela.tflite"
+# INPUT_PATH="${REPO_ROOT}/20260827_Model"
+# LABELS_FILE="${REPO_ROOT}/resources/object_detection/samples/coco128.yaml"
 # IMAGE_SIZE=640
+# NUM_CLASSES=80
 # DISPLAY_DOWNSCALE=4
 # ACTIVATION_BUF_SIZE=0x01000000
 # NPU_MEMORY_MODE=Dedicated_Sram

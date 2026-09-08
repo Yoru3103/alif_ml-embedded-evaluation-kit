@@ -177,6 +177,11 @@ static uint64_t Get_SysTick_Cycle_Count(void)
     return cpu_cycle_count + (SysTick->LOAD - systick_val);
 }
 
+uint64_t get_mps4_systick_cycle_count(void)
+{
+    return Get_SysTick_Cycle_Count();
+}
+
 
 /**
  * SysTick initialisation

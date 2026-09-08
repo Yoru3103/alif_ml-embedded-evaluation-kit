@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2024-2026 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -65,6 +65,12 @@ void platform_get_counters(pmu_counters* counters);
  * @return Clock rate in Hz expressed as 32 bit unsigned integer.
  */
 uint32_t get_mps4_core_clock(void);
+
+/**
+ * @brief   Gets the current SysTick-derived CPU cycle count.
+ * @return  64-bit counter value.
+ */
+uint64_t get_mps4_systick_cycle_count(void);
 
 /**
  * @brief   System tick interrupt handler.

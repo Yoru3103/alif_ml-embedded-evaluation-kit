@@ -163,7 +163,8 @@ bool platform_button_is_pressed(uint32_t buttonIndex)
         return false;
     }
 
-    return (MPS4_FPGAIO_S->BUTTON & (1UL << buttonIndex)) != 0U;
+    /* MPS4 user push buttons are connected as active-low USER_nPB signals. */
+    return (MPS4_FPGAIO_S->BUTTON & (1UL << buttonIndex)) == 0U;
 }
 
 #define CREATE_MASK(msb, lsb)           (int)(((1U << ((msb) - (lsb) + 1)) - 1) << (lsb))
