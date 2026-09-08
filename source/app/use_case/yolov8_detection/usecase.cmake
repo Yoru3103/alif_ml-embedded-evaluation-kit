@@ -80,52 +80,70 @@ USER_OPTION(
 
 USER_OPTION(
     ${use_case}_LABELS_YAML_FILE
-    "Ultralytics dataset YAML containing the class names."
+    "Ultralytics dataset YAML or one-label-per-line text file."
     ${CMAKE_SOURCE_DIR}/resources/object_detection/samples/coco128.yaml
     FILEPATH)
 
 if (NOT EXISTS "${${use_case}_LABELS_YAML_FILE}")
     message(FATAL_ERROR
-        "YOLOv8 labels YAML not found: ${${use_case}_LABELS_YAML_FILE}")
+        "YOLOv8 labels file not found: ${${use_case}_LABELS_YAML_FILE}")
 endif()
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${${use_case}_LABELS_YAML_FILE}")
 
-# gen_labels_cpp expects one label per line. Extract the indexed entries under
-# the YAML names mapping into an intermediate text file at configure time.
-file(STRINGS "${${use_case}_LABELS_YAML_FILE}" YOLOV8_LABEL_LINES
-    REGEX "^[ \t]*[0-9]+:[ \t]+.+$")
-
-list(LENGTH YOLOV8_LABEL_LINES YOLOV8_LABEL_COUNT)
-if (NOT YOLOV8_LABEL_COUNT EQUAL ${${use_case}_NUM_CLASSES})
-    message(FATAL_ERROR
-        "Expected ${${use_case}_NUM_CLASSES} labels in "
-        "${${use_case}_LABELS_YAML_FILE}, found ${YOLOV8_LABEL_COUNT}")
-endif()
-
 set(YOLOV8_LABELS_TXT_FILE "${SRC_GEN_DIR}/yolov8_labels.txt")
 file(WRITE "${YOLOV8_LABELS_TXT_FILE}" "")
 
-set(YOLOV8_EXPECTED_CLASS_ID 0)
-foreach(YOLOV8_LABEL_LINE IN LISTS YOLOV8_LABEL_LINES)
-    string(REGEX MATCH
-        "^[ \t]*([0-9]+):[ \t]*(.+)$"
-        YOLOV8_LABEL_MATCH
-        "${YOLOV8_LABEL_LINE}")
-    set(YOLOV8_CLASS_ID "${CMAKE_MATCH_1}")
-    set(YOLOV8_CLASS_NAME "${CMAKE_MATCH_2}")
-    string(STRIP "${YOLOV8_CLASS_NAME}" YOLOV8_CLASS_NAME)
+get_filename_component(YOLOV8_LABELS_EXTENSION
+    "${${use_case}_LABELS_YAML_FILE}" EXT)
+string(TOLOWER "${YOLOV8_LABELS_EXTENSION}" YOLOV8_LABELS_EXTENSION)
 
-    if (NOT YOLOV8_CLASS_ID EQUAL YOLOV8_EXPECTED_CLASS_ID)
+if (YOLOV8_LABELS_EXTENSION STREQUAL ".txt")
+    file(STRINGS "${${use_case}_LABELS_YAML_FILE}" YOLOV8_LABEL_NAMES)
+    list(LENGTH YOLOV8_LABEL_NAMES YOLOV8_LABEL_COUNT)
+
+    if (NOT YOLOV8_LABEL_COUNT EQUAL ${${use_case}_NUM_CLASSES})
         message(FATAL_ERROR
-            "YOLOv8 label IDs must be contiguous from zero; expected "
-            "${YOLOV8_EXPECTED_CLASS_ID}, found ${YOLOV8_CLASS_ID}")
+            "Expected ${${use_case}_NUM_CLASSES} labels in "
+            "${${use_case}_LABELS_YAML_FILE}, found ${YOLOV8_LABEL_COUNT}")
     endif()
 
-    file(APPEND "${YOLOV8_LABELS_TXT_FILE}" "${YOLOV8_CLASS_NAME}\n")
-    math(EXPR YOLOV8_EXPECTED_CLASS_ID "${YOLOV8_EXPECTED_CLASS_ID} + 1")
-endforeach()
+    foreach(YOLOV8_LABEL_NAME IN LISTS YOLOV8_LABEL_NAMES)
+        string(STRIP "${YOLOV8_LABEL_NAME}" YOLOV8_LABEL_NAME)
+        file(APPEND "${YOLOV8_LABELS_TXT_FILE}" "${YOLOV8_LABEL_NAME}\n")
+    endforeach()
+else()
+    file(STRINGS "${${use_case}_LABELS_YAML_FILE}" YOLOV8_LABEL_LINES
+        REGEX "^[ \t]*[0-9]+:[ \t]+.+$")
+
+    list(LENGTH YOLOV8_LABEL_LINES YOLOV8_LABEL_COUNT)
+    if (NOT YOLOV8_LABEL_COUNT EQUAL ${${use_case}_NUM_CLASSES})
+        message(FATAL_ERROR
+            "Expected ${${use_case}_NUM_CLASSES} labels in "
+            "${${use_case}_LABELS_YAML_FILE}, found ${YOLOV8_LABEL_COUNT}")
+    endif()
+
+    set(YOLOV8_EXPECTED_CLASS_ID 0)
+    foreach(YOLOV8_LABEL_LINE IN LISTS YOLOV8_LABEL_LINES)
+        string(REGEX MATCH
+            "^[ \t]*([0-9]+):[ \t]*(.+)$"
+            YOLOV8_LABEL_MATCH
+            "${YOLOV8_LABEL_LINE}")
+        set(YOLOV8_CLASS_ID "${CMAKE_MATCH_1}")
+        set(YOLOV8_CLASS_NAME "${CMAKE_MATCH_2}")
+        string(STRIP "${YOLOV8_CLASS_NAME}" YOLOV8_CLASS_NAME)
+
+        if (NOT YOLOV8_CLASS_ID EQUAL YOLOV8_EXPECTED_CLASS_ID)
+            message(FATAL_ERROR
+                "YOLOv8 label IDs must be contiguous from zero; expected "
+                "${YOLOV8_EXPECTED_CLASS_ID}, found ${YOLOV8_CLASS_ID}")
+        endif()
+
+        file(APPEND "${YOLOV8_LABELS_TXT_FILE}" "${YOLOV8_CLASS_NAME}\n")
+        math(EXPR YOLOV8_EXPECTED_CLASS_ID "${YOLOV8_EXPECTED_CLASS_ID} + 1")
+    endforeach()
+endif()
 
 generate_images_code(
     "${${use_case}_FILE_PATH}"

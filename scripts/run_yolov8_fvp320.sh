@@ -9,14 +9,27 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 # -----------------------------------------------------------------------------
-# User configuration: select the build directory produced by the build script.
+# User configuration: select the build produced by the build script.
 # -----------------------------------------------------------------------------
-BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
-RUN_NAME=yolov8_best
+MODEL_VARIANT="${YOLOV8_MODEL_VARIANT:-best_int8}"
+case "${MODEL_VARIANT}" in
+best_int8)
+    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
+    RUN_NAME=yolov8_best
+    NPU_MACS=256
+    ;;
+best_int8_new)
+    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best-new"
+    RUN_NAME=yolov8_best_new
+    NPU_MACS=1024
+    ;;
+*)
+    printf 'Unsupported YOLOv8 model variant: %s\n' "${MODEL_VARIANT}" >&2
+    exit 1
+    ;;
+esac
 
-# Alternative yolov8n configuration:
-# BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8n"
-# RUN_NAME=yolov8n_int8
+BUILD_DIR="${YOLOV8_BUILD_DIR:-${BUILD_DIR}}"
 
 FVP_ROOT=/home/xx/FVP_Corstone_SSE-320
 FVP_RUNTIME="${FVP_ROOT}/scripts/runtime.sh"
@@ -62,7 +75,10 @@ mkdir -p "${REPO_ROOT}/logs"
 
 # The Arm FVP runtime script prepares the required shared libraries and paths.
 # shellcheck source=/dev/null
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+set +e
 source "${FVP_RUNTIME}"
+set -e
 
 printf 'Running Corstone-320 FVP\n'
 printf '  Application: %s\n' "${APPLICATION}"
@@ -70,12 +86,12 @@ printf '  Log:         %s\n' "${LOG_FILE}"
 
 "${FVP_BINARY}" \
     -a "${APPLICATION}" \
-    -C mps4_board.subsystem.ethosu.num_macs=256 \
+    -C mps4_board.subsystem.ethosu.num_macs="${NPU_MACS}" \
     -C mps4_board.telnetterminal0.start_telnet=0 \
     -C mps4_board.uart0.out_file=- \
     -C mps4_board.uart0.shutdown_on_eot="${SHUTDOWN_ON_EOT}" \
     -C mps4_board.visualisation.disable-visualisation="${BOARD_VISUALISATION_DISABLED}" \
     -C vis_hdlcd.disable_visualisation="${HDLCD_VISUALISATION_DISABLED}" \
     "${EXTRA_FVP_OPTIONS[@]}" \
-    --stat \
-    2>&1 | tee "${LOG_FILE}"
+    --stat
+    # 2>&1 | tee "${LOG_FILE}"
