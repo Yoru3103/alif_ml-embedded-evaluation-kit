@@ -20,11 +20,11 @@ best_int8)
     BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
     MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_z256/best_int8_vela.tflite"
     LABELS_FILE="${REPO_ROOT}/resources/object_detection/samples/coco128.yaml"
-    INPUT_PATH="${REPO_ROOT}/20260827_Model"
+    INPUT_PATH="${REPO_ROOT}/20260827_Model/000000058350.jpg"
     NUM_CLASSES=80
     NPU_CONFIG_ID=Z256
     NPU_MACS=256
-    SCORE_THRESHOLD=0.25
+    SCORE_THRESHOLD=0.1
     TIMING_ADAPTER_ENABLED=ON
     ;;
 best_int8_new)
@@ -67,7 +67,7 @@ NPU_MEMORY_MODE=Shared_Sram
 
 # A directory is scanned recursively. Unsupported files such as YAML and Markdown
 # are skipped by the image generator.
-MAX_DETECTIONS=20
+MAX_DETECTIONS=5
 NMS_THRESHOLD=0.45
 BUILD_JOBS="${BUILD_JOBS:-8}"
 

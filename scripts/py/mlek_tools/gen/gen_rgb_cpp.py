@@ -110,12 +110,19 @@ def resize_crop_image(
         resample=Image.Resampling.BILINEAR
     )
 
-    # Crop the center of the image
+    # Move the crop window towards the right while keeping its size unchanged.
+    # A value of 0.5 gives a centered crop; 0.75 removes 75% of the available
+    # horizontal margin from the left and 25% from the right.
+    horizontal_crop_position = 0.9
+    horizontal_margin = resized_width - ifm_width
+    crop_left = horizontal_margin * horizontal_crop_position
+    crop_right = crop_left + ifm_width
+
     resized_image = resized_image.crop((
-        (resized_width - ifm_width) / 2,  # left
-        (resized_height - ifm_height) / 2,  # top
-        (resized_width + ifm_width) / 2,  # right
-        (resized_height + ifm_height) / 2  # bottom
+        crop_left,
+        (resized_height - ifm_height) / 2,
+        crop_right,
+        (resized_height + ifm_height) / 2
     ))
 
     return np.array(resized_image, dtype=np.uint8).flatten()

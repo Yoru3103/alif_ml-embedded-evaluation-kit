@@ -160,12 +160,33 @@ SECTIONS
     . = ALIGN(16);
   } > SRAM AT > SRAM
 
-.activation_buf.at_ddr (NOLOAD) :
-{
+  .ddr.at_ddr :
+  {
+    /* __attribute__((aligned(16))) is not handled by the CMSIS startup code.
+     * Force the alignment here as a workaround */
+    . = ALIGN(16);
+    /* nn model's baked in input matrices */
+    *(ifm)
+    . = ALIGN(16);
+    /* nn model's default space */
+    *(nn_model)
+    . = ALIGN (16);
+    /* labels */
+    *(labels)
+    . = ALIGN (16);
+    *Labels*.obj (*.rodata*)
+    . = ALIGN (16);
+    /* activation buffers a.k.a tensor arena when memory mode dedicated sram */
+    /* *(.bss.NoInit.activation_buf_dram)
+    . = ALIGN (16); */
+  } > DDR AT > DDR
+
+  .activation_buf.at_ddr (NOLOAD) :
+  {
     . = ALIGN(16);
     *(.bss.NoInit.activation_buf_dram)
     . = ALIGN(16);
-} > DDR
+  } > DDR
 
   .bss :
   {
@@ -214,25 +235,6 @@ SECTIONS
   PROVIDE(__stack = __StackTop);
   ASSERT(__STACK_SIZE <= LENGTH(DTCM), "DTCM overflow")
 
-  .ddr.at_ddr :
-  {
-    /* __attribute__((aligned(16))) is not handled by the CMSIS startup code.
-     * Force the alignment here as a workaround */
-    . = ALIGN(16);
-    /* nn model's baked in input matrices */
-    *(ifm)
-    . = ALIGN(16);
-    /* nn model's default space */
-    *(nn_model)
-    . = ALIGN (16);
-    /* labels */
-    *(labels)
-    . = ALIGN (16);
-    *Labels*.obj (*.rodata*)
-    . = ALIGN (16);
-    /* activation buffers a.k.a tensor arena when memory mode dedicated sram */
-    /* *(.bss.NoInit.activation_buf_dram)
-    . = ALIGN (16); */
-  } > DDR AT > DDR
+  
 
 }
