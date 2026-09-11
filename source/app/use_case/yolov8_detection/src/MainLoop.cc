@@ -6,9 +6,18 @@
 #include "BufAttributes.hpp"
 #include "Labels.hpp"
 #include "UseCaseCommonUtils.hpp"
-#include "UseCaseHandler.hpp"
-#include "mlek/fwk/tflm/YoloV8Model.hpp"
 #include "mlek/log/log_macros.h"
+#include "UseCaseHandler.hpp"
+
+#if defined(MLEK_FWK_TFLM)
+#include "mlek/fwk/tflm/YoloV8Model.hpp"
+using YoloV8Model = arm::app::fwk::tflm::YoloV8Model;
+#elif defined(MLEK_FWK_EXECUTORCH)
+#include "mlek/fwk/executorch/EtModel.hpp"
+using YoloV8Model = arm::app::fwk::et::EtModel;
+#else
+#error "No supported ML framework selected for YOLOv8 detection"
+#endif
 
 namespace arm::app {
 
@@ -24,7 +33,7 @@ extern size_t GetModelLen();
 
 void MainLoop()
 {
-    arm::app::fwk::tflm::YoloV8Model model;
+    YoloV8Model model;
 
     arm::app::fwk::iface::MemoryRegion modelMemory{
         arm::app::yolov8_detection::GetModelPointer(),

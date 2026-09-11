@@ -304,6 +304,7 @@ void EtModel::LogTensorInfo(std::shared_ptr<iface::TensorIface> tensor)
     shapeStr += "]";
     info("\tShape:\t%s\n", shapeStr.c_str());
     info("\tType:\t%s\n", fwk::iface::GetTensorDataTypeName(tensor->Type()));
+
 }
 
 void EtModel::LogInterpreterInfo()
@@ -323,18 +324,40 @@ void EtModel::LogInterpreterInfo()
 
 void EtModel::LogMemoryUsage() const
 {
-    if (this->m_backendData.m_methodAllocPtr) {
-        info("\tMethod memory: Used: %zu; Peak: %zu; Available: %" PRId32 "\n",
-            this->m_backendData.m_methodAllocPtr->UsedSizeCurrent(),
-            this->m_backendData.m_methodAllocPtr->UsedSizePeak(),
-            this->m_backendData.m_methodAllocPtr->size());
+    info("Model storage: base=%p bytes=%zu (PTE weights and command stream)\n",
+         this->m_modelBuffer.data,
+         this->m_modelBuffer.size);
+    size_t reserved       = 0;
+    size_t peakSum        = 0;
+    const auto& method    = this->m_backendData.m_methodAllocPtr;
+    const auto& temporary = this->m_backendData.m_tmpAllocPtr;
+    if (method) {
+        reserved += method->size();
+        peakSum += method->UsedSizePeak();
+        info("Method pool: base=%p (planned tensors, input copies, metadata)\n",
+             method->base_address());
+        info("  Used=%zu Peak=%zu Capacity=%u Free=%zu bytes\n",
+             method->UsedSizeCurrent(),
+             method->UsedSizePeak(),
+             static_cast<unsigned>(method->size()),
+             method->FreeSize());
     }
-    if (this->m_backendData.m_tmpAllocPtr) {
-        info("\tTemp memory: Used: %zu; Peak: %zu; Available: %" PRId32 "\n",
-            this->m_backendData.m_tmpAllocPtr->UsedSizeCurrent(),
-            this->m_backendData.m_tmpAllocPtr->UsedSizePeak(),
-            this->m_backendData.m_tmpAllocPtr->size());
+    if (temporary) {
+        reserved += temporary->size();
+        peakSum += temporary->UsedSizePeak();
+        info("Temporary pool: base=%p (includes delegate scratch)\n", temporary->base_address());
+        info("  Used=%zu Peak=%zu Capacity=%u Free=%zu bytes\n",
+             temporary->UsedSizeCurrent(),
+             temporary->UsedSizePeak(),
+             static_cast<unsigned>(temporary->size()),
+             temporary->FreeSize());
     }
+    info("Runtime pools: reserved=%zu; sum of pool peaks=%zu bytes\n", reserved, peakSum);
+    info("PTE + reserved pools=%zu; PTE + pool peaks=%zu bytes\n",
+         this->m_modelBuffer.size + reserved,
+         this->m_modelBuffer.size + peakSum);
+    info("Pool peaks may occur at different times; planned tensors/scratch are included.\n");
+    info("Excludes code, heap, stack, display/sample buffers and separate NPU cache.\n");
 }
 
 void EtModel::LogOperatorInfo()

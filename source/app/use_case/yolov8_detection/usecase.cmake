@@ -2,10 +2,10 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-# Specify supported framework.
-set(${use_case}_ML_FRAMEWORK "TensorFlowLiteMicro")
+# Specify supported frameworks.
+set(${use_case}_ML_FRAMEWORK "TensorFlowLiteMicro;ExecuTorch")
 
-if (NOT ${use_case}_ML_FRAMEWORK STREQUAL ${ML_FRAMEWORK})
+if (NOT ${ML_FRAMEWORK} IN_LIST ${use_case}_ML_FRAMEWORK)
     set(${use_case}_supports_${ML_FRAMEWORK} OFF)
     return()
 endif()
@@ -20,18 +20,6 @@ USER_OPTION(
     "Run model from external flash."
     OFF
     BOOL)
-
-USER_OPTION(
-    ${use_case}_IMAGE_SIZE
-    "YOLOv8 input image width and height."
-    256
-    STRING)
-
-USER_OPTION(
-    ${use_case}_NUM_CLASSES
-    "Number of YOLOv8 classes."
-    80
-    STRING)
 
 USER_OPTION(
     ${use_case}_MAX_DETECTIONS
@@ -57,18 +45,47 @@ USER_OPTION(
     2
     STRING)
 
+if (${ML_FRAMEWORK} STREQUAL "TensorFlowLiteMicro")
+    set(DEFAULT_MODEL_PATH
+        ${CMAKE_SOURCE_DIR}/vela_output/best_int8_z256/best_int8_vela.tflite)
+    set(DEFAULT_LABELS_PATH
+        ${CMAKE_SOURCE_DIR}/resources/object_detection/samples/coco128.yaml)
+    set(DEFAULT_IMAGE_SIZE 256)
+    set(DEFAULT_NUM_CLASSES 80)
+    set(DEFAULT_ACTIVATION_BUF_SZ 0x00200000)
+elseif (${ML_FRAMEWORK} STREQUAL "ExecuTorch")
+    set(DEFAULT_MODEL_PATH
+        ${CMAKE_SOURCE_DIR}/resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte)
+    set(DEFAULT_LABELS_PATH
+        ${CMAKE_SOURCE_DIR}/resources/gesture_detection/labels.txt)
+    set(DEFAULT_IMAGE_SIZE 320)
+    set(DEFAULT_NUM_CLASSES 10)
+    # Keep the method allocator within the MPS4 SSE-320 4 MiB SRAM region.
+    # Its usage is separate from the temporary pool that holds NPU scratch.
+    set(DEFAULT_ACTIVATION_BUF_SZ 0x00300000)
+endif()
+
+USER_OPTION(
+    ${use_case}_IMAGE_SIZE
+    "YOLOv8 input image width and height."
+    ${DEFAULT_IMAGE_SIZE}
+    STRING)
+
+USER_OPTION(
+    ${use_case}_NUM_CLASSES
+    "Number of YOLOv8 classes."
+    ${DEFAULT_NUM_CLASSES}
+    STRING)
+
 USER_OPTION(
     ${use_case}_ACTIVATION_BUF_SZ
     "Tensor arena size."
-    0x00200000
+    ${DEFAULT_ACTIVATION_BUF_SZ}
     STRING)
-
-set(DEFAULT_MODEL_PATH
-    ${CMAKE_SOURCE_DIR}/vela_output/best_int8_z256/best_int8_vela.tflite)
 
 USER_OPTION(
     ${use_case}_MODEL_PATH
-    "YOLOv8 TFLite model."
+    "YOLOv8 TFLite or ExecuTorch PTE model."
     ${DEFAULT_MODEL_PATH}
     FILEPATH)
 
@@ -81,8 +98,20 @@ USER_OPTION(
 USER_OPTION(
     ${use_case}_LABELS_YAML_FILE
     "Ultralytics dataset YAML or one-label-per-line text file."
-    ${CMAKE_SOURCE_DIR}/resources/object_detection/samples/coco128.yaml
+    ${DEFAULT_LABELS_PATH}
     FILEPATH)
+
+if (COMMAND generate_pte_ops_lib AND "${ML_FRAMEWORK}" STREQUAL "ExecuTorch")
+    generate_pte_ops_lib(
+        MODEL_PATH      "${${use_case}_MODEL_PATH}"     # Path to the model PTE
+        LIB_NAME        "${use_case}_portable_ops_lib"  # Library target name
+        SELECT_OPS_LIST "")                             # Always included ops list
+
+    # If the target is generated, request it to be linked for this use case.
+    if (TARGET ${use_case}_portable_ops_lib)
+        set(${use_case}_LINK_LIBS ${use_case}_portable_ops_lib)
+    endif()
+endif()
 
 if (NOT EXISTS "${${use_case}_LABELS_YAML_FILE}")
     message(FATAL_ERROR

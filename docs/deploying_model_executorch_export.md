@@ -207,6 +207,237 @@ INFO:quant_op_fusion_pass:Total changes: 0
 
 Note you can add parameters given to Vela using the compile specification extra_flags. For example --verbose-performance --verbose-cycle-estimate --verbose-weights can be useful.
 
+## Exporting the current YOLO model
+
+Use [scripts/export_yolo_pte.py](../scripts/export_yolo_pte.py) to export a complete
+Ultralytics detection checkpoint. Model adaptation and accuracy checks are in
+[scripts/yolo_pte_utils.py](../scripts/yolo_pte_utils.py). Specify the model,
+calibration directory and output path explicitly; the exporter does not search
+for checkpoints automatically.
+
+This exporter supports non-end-to-end detection models whose Detect head exposes
+`_get_decode_boxes`. It does not accept arbitrary state dictionaries or segmentation
+models. The tested environment uses PyTorch 2.10.0, Ultralytics 8.4.129 and the
+ExecuTorch installation in the repository virtual environment. Use the matching
+ExecuTorch runtime when building the application; the generic version 1.0 setup
+above is not a compatibility guarantee for this YOLO exporter.
+
+### Input and output contract
+
+The default input size is 320, with the following float32 tensors:
+
+| Tensor | Shape for the current 10-class model | Meaning |
+| --- | --- | --- |
+| Input | `[1, 3, 320, 320]` | RGB, NCHW, pixel values divided by 255 |
+| Output 0 | `[1, 4, 2100]` | Normalized XYWH box coordinates |
+| Output 1 | `[1, 10, 2100]` | Unscaled class logits |
+
+Apply sigmoid to class logits exactly once in postprocessing. Set
+`YOLOV8_SCORE_LOGITS=1` and `YOLOV8_SCORE_SCALE=1.0` in the MLEK build.
+Do not treat the raw logits as probabilities or multiply them by an objectness score.
+
+Boxes and logits are separated inside the detection head, before quantization.
+Combining pixel-scale boxes with probabilities in one quantized tensor can destroy
+class-score precision; normalizing boxes after that concatenation does not undo
+its quantization error. The new exporter uses a fixed two-output contract without
+score scaling or single-output switches. The legacy `export_my_model.py` is retained;
+its current default already splits outputs, so this single-output failure does not
+explain every low-score result. See the [YOLO export notes](yolo_pt_to_pte.md) for
+reproduced results and the legacy logits-option issue.
+
+### Export and check accuracy
+
+Run from the repository root. Replace the calibration directory with your own
+representative images when using a different dataset:
+
+```sh
+source resources_downloaded/env/bin/activate
+python scripts/export_yolo_pte.py \
+    --model resources_downloaded/gesture_detection/best.pt \
+    --calibration-dir /home/xx/gesture-training/data/yolo/gesture10_demo/images/train \
+    --calibration-limit 128 \
+    --validation-dir resources/gesture_detection/samples \
+    --validation-limit 2 \
+    --image-size 320 \
+    --preprocessing mlek-crop \
+    --target ethos-u85-512 \
+    --vela-config scripts/vela/ensemble_vela.ini \
+    --system-config Ethos_U85_SRAM_MRAM \
+    --memory-mode Shared_Sram \
+    --output resources_downloaded/gesture_detection/best_clean_ethos-u85-512.pte
+```
+
+Calibration uses a reproducible shuffled sample (`--seed 0` by default).
+`--calibration-limit 0` uses all images. Provide images covering all classes,
+backgrounds and lighting conditions. Per-channel weight quantization is enabled
+by default; `--no-per-channel` allows a comparison with per-tensor weights.
+
+`--preprocessing mlek-crop` matches the current MLEK image-generation resize and
+crop policy. `--preprocessing letterbox` uses centered padding with RGB value 114
+and PIL bilinear resizing. The deployment input pipeline must use the same policy;
+changing the export option does not change firmware preprocessing. The PIL
+letterbox implementation is not guaranteed to match OpenCV resizing pixel for pixel.
+
+The exporter verifies the adapted floating-point model against the original model,
+then compares floating-point and host PT2E outputs on validation images. Each image
+reports the maximum probability before and after quantization and the quantized
+probability at the floating-point model's best class/anchor position. By default,
+a drop greater than 0.20 at that position stops the export. Adjust this threshold
+with `--max-score-drop`. Add `--diagnose-only` to the command above to run these
+checks without compiling a PTE.
+
+If `--validation-dir` is omitted, validation uses the calibration directory; the
+default validation limit is 8 images. These checks detect obvious degradation and
+are not a labeled mAP evaluation or a test of the compiled PTE on the NPU.
+
+A same-name `.json` report records configuration, classes, the output contract,
+calibration image paths and score comparisons. Successful compilation also records
+PTE size and planned memory. A failed accuracy or memory-budget check leaves any
+existing PTE untouched; inspect the report status before using an older output file.
+
+### FVP input-layout diagnosis
+
+The first exported PTE had logical input shape `[1, 3, 320, 320]` but serialized
+`dim_order=[2, 0, 3, 1]`: its RGB channels were interleaved in storage. Writing
+planar NCHW data based only on the shape scrambled the input, causing a missed
+`call` and several misplaced `like` boxes. This was an input-layout mismatch,
+not an XYWH decoding error.
+
+The exporter now makes inputs contiguous and records `serialized_tensor_layouts`
+in its JSON report. Firmware preprocessing uses the tensor's actual storage
+strides, so it also handles the previously exported PTE. Rebuild the firmware;
+rerunning an old AXF does not apply the fix.
+
+FVP verification with the existing `best_clean_ethos-u85-512.pte` produced:
+
+| Sample | Best detection | Score | Box `(x, y, width, height)` in the 320x320 input |
+| --- | --- | ---: | --- |
+| call | call | 0.940050 | `(105, 101, 73, 73)` |
+| like | like | 0.989602 | `(109, 175, 69, 98)` |
+
+The call sample also has a low-score like candidate (0.179671), retained by the
+0.10 threshold and class-aware NMS. These coordinates refer to the cropped model
+input, not the original uncropped image. Physical-board validation is still required.
+
+### NPU and memory configuration
+
+| Option | Purpose |
+| --- | --- |
+| `--target` | NPU variant and MAC count, for example `ethos-u85-512` |
+| `--vela-config` | Vela hardware configuration INI file |
+| `--system-config` | System_Config section matching the hardware memory connections |
+| `--memory-mode` | Memory_Mode section, including custom names from the INI |
+| `--arena-cache-size` | Vela arena cache size in bytes, overriding the INI setting |
+| `--extra-flag` | Repeatable Vela option, such as `--extra-flag=--verbose-performance` |
+| `--memory-alignment` | ExecuTorch memory alignment, a power of two >= 16; default 16 |
+| `--max-planned-memory` | Byte budget for total planned nonconstant memory; aborts if exceeded |
+
+For example, add `--max-planned-memory 3145728` to enforce a 3 MiB planned-memory
+budget. This checks the result; it does not force a larger model to fit the budget.
+For a system configuration with a writable external arena and an internal SRAM
+cache, use `--memory-mode Dedicated_Sram --arena-cache-size 393216` as appropriate
+for the hardware. An arena cache size is not a limit on all SRAM in `Shared_Sram` mode.
+
+Additional Vela flags may be repeated, for example:
+
+```text
+--extra-flag=--verbose-performance --extra-flag=--verbose-cycle-estimate
+```
+
+Each different MAC configuration or memory mode requires a separately exported
+PTE. Do not use a PTE exported for `ethos-u85-512` with a `Z256` or `Z1024` runtime.
+The MAC configuration is controlled by `--target` during export and
+`YOLOV8_NPU_CONFIG_ID` during the MLEK build. Set `YOLOV8_NPU_MACS` consistently;
+it supplies build target metadata and selects the MAC count in the FVP run script.
+
+Planned ExecuTorch memory is not the complete application RAM requirement. Check
+Vela scratch/cache requirements, runtime temporary allocations, stack and other
+application memory against the firmware allocation and linker layout. Exporting
+does not change those firmware settings.
+
+### Build with the exported PTE
+
+Select `gesture_pte` and explicitly point the build at the new output:
+
+```sh
+YOLOV8_MODEL_VARIANT=gesture_pte \
+YOLOV8_MODEL_PATH="$PWD/resources_downloaded/gesture_detection/best_clean_ethos-u85-512.pte" \
+YOLOV8_SCORE_LOGITS=1 \
+YOLOV8_SCORE_SCALE=1.0 \
+./scripts/build_yolov8_fvp320.sh
+```
+
+The build script accepts these environment overrides when a different generated
+PTE or platform layout is needed:
+
+```text
+YOLOV8_MODEL_PATH
+YOLOV8_NPU_ID
+YOLOV8_NPU_CONFIG_ID
+YOLOV8_NPU_MACS
+YOLOV8_MEMORY_MODE
+YOLOV8_NPU_CACHE_SIZE
+YOLOV8_ACTIVATION_BUF_SIZE
+YOLOV8_ET_TMP_MEM_SIZE
+YOLOV8_ET_TMP_MEM_BASE
+YOLOV8_IMAGE_SIZE
+YOLOV8_NUM_CLASSES
+YOLOV8_SCORE_LOGITS
+YOLOV8_SCORE_SCALE
+```
+
+`YOLOV8_ACTIVATION_BUF_SIZE` is the application activation buffer.
+`YOLOV8_ET_TMP_MEM_SIZE` and optional `YOLOV8_ET_TMP_MEM_BASE` configure the
+ExecuTorch runtime temporary allocation pool. These settings and
+`YOLOV8_NPU_CACHE_SIZE` must be checked separately from the planned memory in the
+JSON report and the Ethos-U SRAM requirement reported by Vela.
+
+### Reading the runtime memory report
+
+The runtime prints model storage address/size and each allocator's address,
+capacity, current usage and peak usage. It also prints total reserved pool bytes,
+the sum of pool peaks, and both totals with PTE storage included. The FVP run script
+saves console output to `logs/yolov8_gesture_pte_fvp320.log` for `gesture_pte`.
+
+For the verified build above:
+
+| Allocation | Actual FVP region / address | Reserved or stored bytes | Measured pool peak bytes |
+| --- | --- | ---: | ---: |
+| PTE weights and command stream | DDR, `0x70096000` | 3,006,896 | N/A |
+| Method pool | SRAM, `0x31000000` | 3,145,728 | 2,765,677 |
+| Temporary pool including delegate scratch | DDR, `0x94000000` | 16,777,216 | 823,872 |
+
+Runtime pools reserve **19 MiB** (19,922,944 bytes). Their peak sum is
+3,589,549 bytes (about 3.42 MiB); individual peaks need not occur simultaneously.
+PTE plus reserved pools is 22,929,840 bytes (about 21.87 MiB); PTE plus pool peaks
+is 6,596,445 bytes (about 6.29 MiB). These are model-storage/runtime-pool totals,
+not whole-firmware memory requirements.
+
+The 1,536,000-byte planned buffer and the 1,228,800-byte additional input buffer
+are already inside the method pool. Delegate scratch is included in the temporary
+pool for this build. Do not add those sizes or Vela's SRAM figure a second time.
+Code, general heap, stack, display/sample data and any separate NPU cache are
+outside these totals. The PTE is currently in FVP DDR, even though the Vela system
+configuration is named `Ethos_U85_SRAM_MRAM`; actual placement comes from the
+firmware linker/platform configuration, not that name.
+
+Before moving to hardware, check the actual linker map, NPU access to each region,
+cache mode and measured peaks across representative inputs. The current 16 MiB
+temporary capacity is a reservation, not evidence of a 16 MiB runtime requirement.
+Changing `YOLOV8_ET_TMP_MEM_SIZE` requires rebuilding and checking the resulting
+platform layout and inference again; retain headroom rather than setting capacity
+to exactly one observed peak.
+
+To run without display windows and exit after completion:
+
+```sh
+YOLOV8_MODEL_VARIANT=gesture_pte \
+YOLOV8_BOARD_VISUALISATION_DISABLED=1 \
+YOLOV8_HDLCD_VISUALISATION_DISABLED=1 \
+YOLOV8_SHUTDOWN_ON_EOT=1 \
+./scripts/run_yolov8_fvp320.sh
+```
+
 ## Visualize exported PTE
 
 You can use the model-explorer to visualize the exported PTE file.
