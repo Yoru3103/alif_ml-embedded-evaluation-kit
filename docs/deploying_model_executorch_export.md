@@ -207,6 +207,174 @@ INFO:quant_op_fusion_pass:Total changes: 0
 
 Note you can add parameters given to Vela using the compile specification extra_flags. For example --verbose-performance --verbose-cycle-estimate --verbose-weights can be useful.
 
+## Exporting the current YOLO model
+
+Use [scripts/export_yolo_pte.py](../scripts/export_yolo_pte.py) to export a complete
+Ultralytics detection checkpoint. It makes the PTE conform to the original MLEK
+YOLO interface, so no special tensor strides, split-output branches, logits handling
+or score scaling are needed in the deployment code.
+
+The supported model is a non-end-to-end Ultralytics detector whose head exposes
+`_get_decode_boxes`. Arbitrary state dictionaries and segmentation models are not
+supported. The tested environment uses PyTorch 2.10.0, Ultralytics 8.4.129 and the
+repository's ExecuTorch environment. Match the export and runtime versions; the
+generic version 1.0 setup above is not a compatibility guarantee for this exporter.
+
+### Input and output contract
+
+| Tensor | Current 10-class model | Meaning |
+| --- | --- | --- |
+| Input | float32 `[1,3,320,320]` | Contiguous NCHW RGB, pixel values divided by 255 |
+| Output | float32 `[1,14,2100]` | Contiguous `[1,4+C,N]`: normalized XYWH followed by class probabilities |
+
+The exporter normalizes box coordinates **before** concatenating them with sigmoid
+class probabilities. This avoids sharing the large pixel-coordinate range with
+0-to-1 probabilities. Making the input contiguous also avoids the PIL-derived
+interleaved layout that caused the earlier FVP input mismatch.
+
+After compilation, the exporter rejects unexpected input/output counts, shapes,
+float types or dimension orders. It records the final layout in the JSON report.
+The original MLEK preprocessor and single-output postprocessor are used unchanged.
+Do not apply sigmoid again or configure score scaling in firmware.
+
+The previous split-output PTE files (`best_clean_*`, `best_contiguous_*`) are not
+compatible with the restored single-output path. Export/use `best_mlek_*` and
+rebuild the application. The necessary ExecuTorch framework selection, portable
+operator linkage and memory settings remain; the original entry point only
+supported TFLite. Runtime memory reporting is independent of YOLO output adaptation.
+
+### Export and check accuracy
+
+Run from the repository root, substituting your representative calibration dataset:
+
+```sh
+source resources_downloaded/env/bin/activate
+python scripts/export_yolo_pte.py \
+    --model resources_downloaded/gesture_detection/best.pt \
+    --calibration-dir /home/xx/gesture-training/data/yolo/gesture10_demo/images/train \
+    --calibration-limit 128 \
+    --validation-dir resources/gesture_detection/samples \
+    --validation-limit 8 \
+    --image-size 320 \
+    --preprocessing mlek-crop \
+    --target ethos-u85-512 \
+    --vela-config scripts/vela/ensemble_vela.ini \
+    --system-config Ethos_U85_SRAM_MRAM \
+    --memory-mode Shared_Sram \
+    --output resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte
+```
+
+Calibration images are shuffled reproducibly (`--seed 0` by default).
+`--calibration-limit 0` uses all images. Cover all classes, backgrounds and lighting
+conditions. Per-channel weight quantization is enabled by default;
+`--no-per-channel` enables a per-tensor comparison.
+
+`--preprocessing mlek-crop` matches the original image-generation resize/crop policy.
+`--preprocessing letterbox` instead uses PIL bilinear resizing and centered padding
+with RGB 114. This option requires matching deployment preprocessing; it does not
+change the firmware automatically or guarantee pixel parity with OpenCV resizing.
+
+The exporter verifies the floating-point adapter against the original model and
+compares floating-point and PT2E outputs on validation images. It reports maximum
+probabilities and the quantized probability at the floating-point best class/anchor.
+A same-position probability drop greater than `--max-score-drop` (default 0.20)
+stops the export. Add `--diagnose-only` to skip NPU compilation.
+
+Without `--validation-dir`, checks use the calibration directory. The default
+validation limit is 8. These checks do not replace labeled mAP evaluation or running
+the compiled PTE on FVP/hardware. The same-name JSON records calibration files,
+configuration, output contract, comparisons, serialized layouts and planned memory.
+A rejected export leaves any existing PTE untouched; check the report before using it.
+
+### NPU and memory options
+
+| Option | Purpose |
+| --- | --- |
+| `--target` | NPU variant and MAC count, for example `ethos-u85-512` |
+| `--vela-config` | Vela hardware configuration INI |
+| `--system-config` | System_Config matching actual memory connections |
+| `--memory-mode` | Memory_Mode section, including custom modes |
+| `--arena-cache-size` | Vela arena cache bytes, overriding the INI setting |
+| `--extra-flag` | Repeatable Vela option, e.g. `--extra-flag=--verbose-performance` |
+| `--memory-alignment` | ExecuTorch alignment: a power of two >= 16; default 16 |
+| `--max-planned-memory` | Byte budget for planned nonconstant buffers; aborts if exceeded |
+
+For example, `--max-planned-memory 3145728` checks a 3 MiB planned-memory budget;
+it does not force a larger model to fit. Use
+`--memory-mode Dedicated_Sram --arena-cache-size 393216` only with a matching
+system configuration that provides the required writable arena and SRAM cache.
+The cache option does not limit all SRAM usage in `Shared_Sram` mode.
+
+Changing MAC count or memory mode requires re-exporting and matching the firmware
+configuration. Set `YOLOV8_NPU_CONFIG_ID` and `YOLOV8_NPU_MACS` consistently with
+`--target`; do not use a U85-512 PTE with a Z256/Z1024 runtime.
+
+### Build and run with the original YOLO processing
+
+```sh
+GESTURE_MODEL_VARIANT=pte \
+GESTURE_MODEL_PATH="$PWD/resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte" \
+./scripts/build_gesture_fvp320.sh
+
+GESTURE_MODEL_VARIANT=pte ./scripts/run_gesture_fvp320.sh
+```
+
+No `YOLOV8_SCORE_LOGITS`, `YOLOV8_SCORE_SCALE` or special output-layout flags are
+needed or consumed. The build retains your configured detection threshold and NMS.
+Relevant deployment overrides are:
+
+```text
+GESTURE_MODEL_PATH
+GESTURE_NPU_ID
+GESTURE_NPU_CONFIG_ID
+GESTURE_NPU_MACS
+GESTURE_MEMORY_MODE
+GESTURE_NPU_CACHE_SIZE
+GESTURE_ACTIVATION_BUF_SIZE
+GESTURE_ET_TMP_MEM_SIZE
+GESTURE_ET_TMP_MEM_BASE
+GESTURE_IMAGE_SIZE
+GESTURE_NUM_CLASSES
+```
+
+### Memory report and board deployment
+
+Runtime logs print model storage address/size and each allocator's address,
+capacity, current usage and peak usage. Totals distinguish reserved pool capacity
+from the sum of measured pool peaks. They also show PTE storage plus each total.
+Pool peaks can occur at different times; these are not whole-firmware RAM totals.
+
+For this MPS4 configuration, the method pool is in SRAM at `0x31000000`, with
+3 MiB reserved. The temporary pool is in DDR at `0x94000000`, with 16 MiB reserved.
+The PTE is also placed in DDR; its address depends on the linked image resources.
+A Vela system name containing MRAM does not place the firmware model in MRAM.
+Use the linker map and actual addresses to determine physical placement.
+
+Planned tensors and additional input copies are already in the method pool.
+Delegate scratch is included in the temporary pool for this build; do not add
+Vela's SRAM figure again. Code, general heap, stack, display/sample buffers and any
+separate NPU cache remain outside these totals. Reduce pool reservations only after
+measuring representative inputs and checking hardware access, linker layout and
+headroom. The exporter cannot determine a universal physical RAM total on its own.
+
+The single-output PTE passed the 2026-09-14 FVP run with the original processing
+code: call 0.940463, four 0.982935, like 0.989003 and ok 0.928328, one detection per
+sample at the current 0.45 threshold. The model occupies 3,007,008 bytes; method and
+temporary pool peaks were 2,765,429 and 2,048,880 bytes respectively. These replace
+the earlier split-output model's figures. The current input/output contract costs
+more temporary scratch and roughly 7% more NPU cycles than that earlier build;
+recheck capacity and performance for the target board.
+
+See [YOLO export notes](yolo_pt_to_pte.md) for boxes and memory addresses. The sample
+checks do not replace dataset-wide accuracy or hardware tests.
+
+Regression checks for the export boundary can be run with:
+
+```sh
+PYTHONPATH=scripts resources_downloaded/env/bin/python -m unittest discover \
+    -s scripts/tests -p test_yolo_pte_contract.py
+```
+
 ## Visualize exported PTE
 
 You can use the model-explorer to visualize the exported PTE file.

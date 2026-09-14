@@ -19,6 +19,10 @@
 #include "mlek/fwk/tflm/TflmTensor.hpp"
 #include "mlek/log/log_macros.h"
 
+#if defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR)
+#include "tensorflow/lite/micro/recording_micro_allocator.h"
+#endif /* defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR) */
+
 #include <cinttypes>
 #include <cstring>
 #include <memory>
@@ -102,6 +106,11 @@ std::string InferNpuMemoryModeFromEthosUOp(const tflite::Model* model)
 
 TflmModel::TflmModel() {}
 
+TflmModel::~TflmModel()
+{
+    this->LogMemoryUsage();
+}
+
 /* Initialise the model */
 bool TflmModel::Init(iface::MemoryRegion& computeBuffer,
                      iface::MemoryRegion& nnModel,
@@ -142,8 +151,9 @@ bool TflmModel::Init(iface::MemoryRegion& computeBuffer,
 
     /** If backend data has been provided, re-use the allocator */
     if (backendData) {
-        this->m_backendData.m_pAllocator =
-            reinterpret_cast<const TflmBackendData*>(backendData)->m_pAllocator;
+        const auto* sharedBackendData = reinterpret_cast<const TflmBackendData*>(backendData);
+        this->m_backendData.m_pAllocator = sharedBackendData->m_pAllocator;
+        this->m_backendData.m_pRecordingAllocator = sharedBackendData->m_pRecordingAllocator;
     }
 
     /* Create allocator instance, if it doesn't exist */
@@ -151,8 +161,14 @@ bool TflmModel::Init(iface::MemoryRegion& computeBuffer,
         /* Create an allocator instance */
         info("Creating allocator using tensor arena at 0x%p\n", computeBuffer.data);
 
+#if defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR)
+        this->m_backendData.m_pRecordingAllocator =
+            tflite::RecordingMicroAllocator::Create(computeBuffer.data, computeBuffer.size);
+        this->m_backendData.m_pAllocator = this->m_backendData.m_pRecordingAllocator;
+#else
         this->m_backendData.m_pAllocator =
             tflite::MicroAllocator::Create(computeBuffer.data, computeBuffer.size);
+#endif /* defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR) */
 
         if (!this->m_backendData.m_pAllocator) {
             printf_err("Failed to create allocator\n");
@@ -268,8 +284,7 @@ void TflmModel::LogInterpreterInfo()
         this->LogTensorInfo(output);
     }
 
-    info("Activation buffer (a.k.a tensor arena) size used: %zu\n",
-         this->m_backendData.m_pInterpreter->arena_used_bytes());
+    this->LogMemoryUsage();
 
     /* We expect there to be only one subgraph. */
     const uint32_t nOperators = tflite::NumSubgraphOperators(this->m_backendData.m_pModel, 0);
@@ -307,6 +322,79 @@ void TflmModel::LogInterpreterInfo()
             warn("Unable to infer NPU memory mode.\n");
         }
     }
+}
+
+void TflmModel::LogMemoryUsage() const
+{
+    size_t arenaUsed = 0;
+    size_t nonPersistentUsed = 0;
+    size_t persistentUsed = 0;
+
+    if (this->m_backendData.m_pInterpreter) {
+        arenaUsed = this->m_backendData.m_pInterpreter->arena_used_bytes();
+    }
+
+#if defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR)
+    if (this->m_backendData.m_pRecordingAllocator) {
+        const auto* arenaAllocator =
+            this->m_backendData.m_pRecordingAllocator->GetSimpleMemoryAllocator();
+        nonPersistentUsed = arenaAllocator->GetNonPersistentUsedBytes();
+        persistentUsed = arenaAllocator->GetPersistentUsedBytes();
+        arenaUsed = nonPersistentUsed + persistentUsed;
+
+        info("TFLM allocation breakdown:\n");
+        const auto logAllocation = [&](tflite::RecordedAllocationType type,
+                                        const char* name) {
+            const auto allocation =
+                this->m_backendData.m_pRecordingAllocator->GetRecordedAllocation(type);
+            if (allocation.used_bytes > 0 || allocation.requested_bytes > 0) {
+                info("  %s: used=%zu requested=%zu count=%zu\n",
+                     name,
+                     allocation.used_bytes,
+                     allocation.requested_bytes,
+                     allocation.count);
+            }
+        };
+        logAllocation(tflite::RecordedAllocationType::kTfLiteEvalTensorData,
+                      "TfLiteEvalTensor data");
+        logAllocation(tflite::RecordedAllocationType::kPersistentTfLiteTensorData,
+                      "Persistent TfLiteTensor data");
+        logAllocation(tflite::RecordedAllocationType::kPersistentTfLiteTensorQuantizationData,
+                      "Persistent tensor quantization data");
+        logAllocation(tflite::RecordedAllocationType::kPersistentBufferData,
+                      "Persistent buffer data");
+        logAllocation(tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData,
+                      "TfLiteTensor variable data");
+        logAllocation(tflite::RecordedAllocationType::kNodeAndRegistrationArray,
+                      "Node and registration data");
+        logAllocation(tflite::RecordedAllocationType::kOpData, "Operator runtime data");
+    }
+#endif /* defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR) */
+
+    const size_t arenaFree = this->m_computeBuffer.size > arenaUsed
+                                 ? this->m_computeBuffer.size - arenaUsed
+                                 : 0;
+    info("Model storage: base=%p bytes=%zu (TFLite flatbuffer)\n",
+         this->m_modelBuffer.data,
+         this->m_modelBuffer.size);
+    info("Tensor arena: base=%p\n", this->m_computeBuffer.data);
+    info("  Used=%zu Capacity=%zu Free=%zu bytes\n",
+         arenaUsed,
+         this->m_computeBuffer.size,
+         arenaFree);
+#if defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR)
+    if (this->m_backendData.m_pRecordingAllocator) {
+        info("  Non-persistent/head (activations and scratch): %zu bytes\n",
+             nonPersistentUsed);
+        info("  Persistent/tail (metadata and buffers): %zu bytes\n",
+             persistentUsed);
+    }
+#endif /* defined(MLEK_TFLM_USE_RECORDING_ALLOCATOR) */
+    info("Model + arena reserved=%zu; model + arena used=%zu bytes\n",
+         this->m_modelBuffer.size + this->m_computeBuffer.size,
+         this->m_modelBuffer.size + arenaUsed);
+    info("TFLM memory excludes code, heap, stack, display/sample buffers and "
+         "separate NPU cache.\n");
 }
 
 bool TflmModel::IsInited() const

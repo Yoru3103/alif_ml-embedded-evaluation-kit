@@ -198,10 +198,11 @@ Member functions defined in the `Model` base class:
 
 Additional member functions in the `TflmModel` subclass:
 
-| Method name        | Visibility | Description                                   |
-|--------------------|------------|-----------------------------------------------|
-| `GetOpResolver`    | Protected  | Get the ops resolver.                         |
-| `EnlistOperations` | Protected  | Add all the operators required for the model. |
+| Method name         | Visibility | Description                                                     |
+|---------------------|------------|-----------------------------------------------------------------|
+| `GetOpResolver`     | Protected  | Get the ops resolver.                                           |
+| `EnlistOperations`  | Protected  | Add all the operators required for the model.                   |
+| `LogMemoryUsage`    | Public     | Print model and tensor arena memory usage to the output.        |
 
 > For models using TensorFlow Lite Micro implementation of the protected virtual
 > methods:

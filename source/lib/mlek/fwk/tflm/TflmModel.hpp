@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2023, 2025 Arm Limited and/or its affiliates
+ * SPDX-FileCopyrightText: Copyright 2021-2023, 2025-2026 Arm Limited and/or its affiliates
  * <open-source-office@arm.com> SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,10 @@
 #include "mlek/fwk/tflm/TensorFlowLiteMicro.hpp"
 #include <cstdint>
 
+namespace tflite {
+class RecordingMicroAllocator;
+} /* namespace tflite */
+
 namespace arm::app::fwk::tflm {
 
 /**
@@ -29,6 +33,8 @@ namespace arm::app::fwk::tflm {
 struct TflmBackendData {
     const tflite::Model* m_pModel{nullptr};        /**< Tflite model pointer. */
     tflite::MicroAllocator* m_pAllocator{nullptr}; /**< Tflite micro allocator. */
+    tflite::RecordingMicroAllocator*
+        m_pRecordingAllocator{nullptr}; /**< Optional allocator used for memory reporting. */
 
     /** Tflite interpreter. */
     std::unique_ptr<tflite::MicroInterpreter> m_pInterpreter{nullptr};
@@ -43,7 +49,7 @@ public:
     TflmModel();
 
     /** @brief Destructor. */
-    virtual ~TflmModel() = default;
+    virtual ~TflmModel();
 
     /** @brief  Gets the pointer to the model's input tensor at given input index. */
     std::shared_ptr<iface::TensorIface> GetInputTensor(size_t index) const override;
@@ -71,6 +77,9 @@ public:
 
     /** @brief  Logs the interpreter information to stdout. */
     void LogInterpreterInfo() override;
+
+    /** @brief Logs tensor arena and model memory usage to stdout. */
+    void LogMemoryUsage() const;
 
     /** @brief      Initialise the model class object.
      *  @return     true if initialisation succeeds, false otherwise.
