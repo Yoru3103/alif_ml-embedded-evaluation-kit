@@ -11,3 +11,13 @@
 *.bin binary
 *.tar.gz binary
 *.zip binary
+
+# Real-board-specific files — keep the feature/yolov8-real-board version when
+# merging application and model changes from another branch. The merge driver
+# is configured locally as merge.keep-board.
+source/hal/** merge=keep-board
+scripts/cmake/platforms/mps4/** merge=keep-board
+scripts/debug/mps4/** merge=keep-board
+scripts/debug/fvp/** merge=keep-board
+source/app/main/Main.cc merge=keep-board
+docs/mps4_wsl_debug_guide_zh.md merge=keep-board
