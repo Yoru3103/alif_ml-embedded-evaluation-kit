@@ -30,6 +30,8 @@ if (NOT "TensorFlowLiteMicro" STREQUAL ${ML_FRAMEWORK})
     message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR} should not be included for ${ML_FRAMEWORK}")
 endif()
 
+set(MLEK_TFLM_USE_RECORDING_ALLOCATOR OFF)
+
 # For CMSIS pack generation flow, we don't need to include TensorFlow Lite
 # Micro lib or link against it.
 if (NOT CMSIS_PACK_GEN_FLOW)
@@ -42,6 +44,10 @@ if (NOT CMSIS_PACK_GEN_FLOW)
         include(tensorflow_lite_micro)
     else()
         set(TFLM_EXTERNAL_TARGET ON)
+    endif()
+
+    if (NOT TFLM_EXTERNAL_TARGET AND MLEK_LOG_ENABLE)
+        set(MLEK_TFLM_USE_RECORDING_ALLOCATOR ON)
     endif()
 endif ()
 
@@ -69,6 +75,8 @@ target_link_libraries(${ML_FWK_TFLM_TARGET} PUBLIC
     $<$<NOT:$<BOOL:${CMSIS_PACK_GEN_FLOW}>>:google::tensorflow-lite-micro>) # TensorFlow Lite Micro library
 
 target_compile_definitions(${ML_FWK_TFLM_TARGET} INTERFACE MLEK_FWK_TFLM=1)
+target_compile_definitions(${ML_FWK_TFLM_TARGET} PRIVATE
+    $<$<BOOL:${MLEK_TFLM_USE_RECORDING_ALLOCATOR}>:MLEK_TFLM_USE_RECORDING_ALLOCATOR>)
 
 # Set the source file property to indicate that it should not use the logging
 # facility from the Cortex-M CPU generic target unless it is an internally
