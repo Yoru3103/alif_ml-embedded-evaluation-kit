@@ -13,12 +13,12 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 #   best_int8      - original FP32/NCHW single-output model
 #   best_int8_new  - INT8/NHWC four-output model with 15 classes
 #   gesture_pte    - ExecuTorch PTE model with 10 gesture classes
-# Example: YOLOV8_MODEL_VARIANT=best_int8_new ./scripts/build_yolov8_fvp320.sh
+# Example: YOLOV8_MODEL_VARIANT=best_int8_new ./scripts/build_yolov8_mps4.sh
 # -----------------------------------------------------------------------------
 MODEL_VARIANT="${YOLOV8_MODEL_VARIANT:-best_int8}"
 case "${MODEL_VARIANT}" in
 best_int8)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-best"
     MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_z256/best_int8_vela.tflite"
     LABELS_FILE="${REPO_ROOT}/resources/object_detection/samples/coco128.yaml"
     INPUT_PATH="${REPO_ROOT}/20260827_Model/000000058350.jpg"
@@ -34,7 +34,7 @@ best_int8)
     TIMING_ADAPTER_ENABLED=ON
     ;;
 best_int8_new)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best-new"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-best-new"
     MODEL_PATH="${REPO_ROOT}/vela_output/best_int8_new_z1024/best_int8_new_vela.tflite"
     LABELS_FILE="${REPO_ROOT}/resources/object_detection/samples/labels_yolo15.txt"
     INPUT_PATH="${REPO_ROOT}/resources/object_detection/samples_best_new"
@@ -50,17 +50,18 @@ best_int8_new)
     TIMING_ADAPTER_ENABLED=ON
     ;;
 gesture_pte)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-gesture-pte"
-    MODEL_PATH="${REPO_ROOT}/resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-gesture-pte"
+    MODEL_PATH="${REPO_ROOT}/resources_downloaded/gesture_detection/best_dedicated_ethos-u85-1024.pte"
     LABELS_FILE="${REPO_ROOT}/resources/gesture_detection/labels.txt"
     INPUT_PATH="${REPO_ROOT}/resources/gesture_detection/samples/"
     NUM_CLASSES=10
-    NPU_CONFIG_ID=Z512
-    NPU_MACS=512
+    NPU_CONFIG_ID=Z1024
+    NPU_MACS=1024
     SCORE_THRESHOLD=0.45
     IMAGE_SIZE=320
     ACTIVATION_BUF_SIZE=0x00300000
     ML_FRAMEWORK=ExecuTorch
+    NPU_MEMORY_MODE=Dedicated_Sram
     ET_TMP_MEM_SIZE=0x01000000
     ET_TMP_MEM_BASE=""
     TIMING_ADAPTER_ENABLED=ON
@@ -82,8 +83,8 @@ ACTIVATION_BUF_SIZE="${YOLOV8_ACTIVATION_BUF_SIZE:-${ACTIVATION_BUF_SIZE}}"
 NPU_ID="${YOLOV8_NPU_ID:-U85}"
 NPU_CONFIG_ID="${YOLOV8_NPU_CONFIG_ID:-${NPU_CONFIG_ID}}"
 NPU_MACS="${YOLOV8_NPU_MACS:-${NPU_MACS}}"
-NPU_CACHE_SIZE="${YOLOV8_NPU_CACHE_SIZE:-}"
-NPU_MEMORY_MODE="${YOLOV8_MEMORY_MODE:-Shared_Sram}"
+NPU_CACHE_SIZE="${YOLOV8_NPU_CACHE_SIZE:-${NPU_CACHE_SIZE:-}}"
+NPU_MEMORY_MODE="${YOLOV8_MEMORY_MODE:-${NPU_MEMORY_MODE:-Shared_Sram}}"
 ML_FRAMEWORK="${YOLOV8_ML_FRAMEWORK:-${ML_FRAMEWORK}}"
 ET_TMP_MEM_SIZE="${YOLOV8_ET_TMP_MEM_SIZE:-${ET_TMP_MEM_SIZE}}"
 ET_TMP_MEM_BASE="${YOLOV8_ET_TMP_MEM_BASE:-${ET_TMP_MEM_BASE}}"
@@ -103,7 +104,17 @@ ET_TMP_MEM_BASE="${YOLOV8_ET_TMP_MEM_BASE:-${ET_TMP_MEM_BASE}}"
 # are skipped by the image generator.
 MAX_DETECTIONS=20
 NMS_THRESHOLD=0.45
+CPU_PROFILE_ENABLED="${YOLOV8_CPU_PROFILE_ENABLED:-ON}"
 BUILD_JOBS="${BUILD_JOBS:-8}"
+
+if [[ "${ML_FRAMEWORK}" == "ExecuTorch" && "${NPU_MEMORY_MODE}" != "Dedicated_Sram" ]]; then
+    printf 'ExecuTorch/PTE builds require Dedicated_Sram on this target.\n' >&2
+    exit 1
+fi
+
+if [[ "${ML_FRAMEWORK}" == "ExecuTorch" ]]; then
+    NPU_CACHE_SIZE="${NPU_CACHE_SIZE:-393216}"
+fi
 
 if [[ ! -f "${MODEL_PATH}" ]]; then
     printf 'Model not found: %s\n' "${MODEL_PATH}" >&2
@@ -139,13 +150,14 @@ if [[ "${ML_FRAMEWORK}" == "ExecuTorch" ]]; then
     fi
 fi
 
-printf 'Configuring YOLOv8 FVP build\n'
+printf 'Configuring YOLOv8 MPS4 board build\n'
 printf '  Build directory: %s\n' "${BUILD_DIR}"
 printf '  Model:           %s\n' "${MODEL_PATH}"
 printf '  Labels:          %s\n' "${LABELS_FILE}"
 printf '  Input:           %s\n' "${INPUT_PATH}"
 printf '  NPU:             Ethos-%s %s (%s MACs)\n' "${NPU_ID}" "${NPU_CONFIG_ID}" "${NPU_MACS}"
 printf '  Memory mode:     %s\n' "${NPU_MEMORY_MODE}"
+printf '  CPU profiling:   %s\n' "${CPU_PROFILE_ENABLED}"
 printf '  Activation buf:  %s\n' "${ACTIVATION_BUF_SIZE}"
 if [[ "${ML_FRAMEWORK}" == "ExecuTorch" ]]; then
     printf '  ET temp memory:  %s\n' "${ET_TMP_MEM_SIZE}"
@@ -160,6 +172,7 @@ cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" \
     -DML_FRAMEWORK="${ML_FRAMEWORK}" \
     -DUSE_CASE_BUILD=yolov8_detection \
     -DUSE_SINGLE_INPUT=OFF \
+    -DCPU_PROFILE_ENABLED="${CPU_PROFILE_ENABLED}" \
     -DETHOS_U_NPU_ENABLED=ON \
     -DETHOS_U_NPU_ID="${NPU_ID}" \
     -DETHOSU_TARGET_NPU_CONFIG="ethos-${NPU_ID}-${NPU_MACS}" \

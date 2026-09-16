@@ -3,6 +3,7 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
+# Simulate the MPS4 board build on FVP; this does not flash a physical board.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,26 +13,26 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 # User configuration: select the build produced by the build script.
 #   best_int8      - TensorFlow Lite Micro model, 256 MACs
 #   best_int8_new  - TensorFlow Lite Micro model, 512 MACs
-#   gesture_pte    - ExecuTorch PTE model, 512 MACs
+#   gesture_pte    - ExecuTorch PTE model, 1024 MACs
 # -----------------------------------------------------------------------------
 MODEL_VARIANT="${YOLOV8_MODEL_VARIANT:-best_int8}"
 case "${MODEL_VARIANT}" in
 best_int8)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-best"
     RUN_NAME=yolov8_best
     NPU_MACS=256
     ML_FRAMEWORK=TensorFlowLiteMicro
     ;;
 best_int8_new)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-best-new"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-best-new"
     RUN_NAME=yolov8_best_new
     NPU_MACS=512
     ML_FRAMEWORK=TensorFlowLiteMicro
     ;;
 gesture_pte)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-gesture-pte"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-yolov8-gesture-pte"
     RUN_NAME=yolov8_gesture_pte
-    NPU_MACS=512
+    NPU_MACS=1024
     ML_FRAMEWORK=ExecuTorch
     ;;
 *)
@@ -79,7 +80,7 @@ fi
 
 if [[ ! -f "${APPLICATION}" ]]; then
     printf 'Application not found: %s\n' "${APPLICATION}" >&2
-    printf 'Run scripts/build_yolov8_fvp320.sh first.\n' >&2
+    printf 'Run scripts/build_yolov8_mps4.sh first.\n' >&2
     exit 1
 fi
 

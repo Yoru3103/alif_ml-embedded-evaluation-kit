@@ -9,22 +9,24 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 # Select the Gesture model with GESTURE_MODEL_VARIANT:
-#   tflite - TensorFlow Lite Micro model, Vela-compiled for Ethos-U85/Z512
-#   pte    - ExecuTorch PTE model, Vela-compiled for Ethos-U85/Z512
+#   tflite - TensorFlow Lite Micro model, Vela-compiled for Ethos-U85/Z1024
+#   pte    - ExecuTorch PTE model, Vela-compiled for Ethos-U85/Z1024
 MODEL_VARIANT="${GESTURE_MODEL_VARIANT:-tflite}"
 case "${MODEL_VARIANT}" in
 tflite)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-gesture-tflite"
-    MODEL_PATH="${REPO_ROOT}/resources_downloaded/gesture_detection/best_int8_ethos-u85-512.tflite"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-gesture-tflite"
+    MODEL_PATH="${REPO_ROOT}/resources_downloaded/gesture_detection/best_int8_ethos-u85-1024.tflite"
     ML_FRAMEWORK=TensorFlowLiteMicro
+    NPU_MEMORY_MODE="${GESTURE_MEMORY_MODE:-Shared_Sram}"
     ET_TMP_MEM_SIZE=""
     ET_TMP_MEM_BASE=""
     ;;
 pte)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-gesture-pte"
-    MODEL_PATH="${REPO_ROOT}/resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-gesture-pte"
+    MODEL_PATH="${REPO_ROOT}/resources_downloaded/gesture_detection/best_dedicated_ethos-u85-1024.pte"
     ML_FRAMEWORK=ExecuTorch
-    ET_TMP_MEM_SIZE=0x01000000
+    NPU_MEMORY_MODE="${GESTURE_MEMORY_MODE:-Dedicated_Sram}"
+    ET_TMP_MEM_SIZE=0x00200000
     ET_TMP_MEM_BASE=""
     ;;
 *)
@@ -50,14 +52,27 @@ MAX_DETECTIONS="${GESTURE_MAX_DETECTIONS:-20}"
 SCORE_THRESHOLD="${GESTURE_SCORE_THRESHOLD:-0.45}"
 NMS_THRESHOLD="${GESTURE_NMS_THRESHOLD:-0.45}"
 
-# Corstone-320 FVP: Ethos-U85, 512 MACs, Shared SRAM.
+# Corstone-320 FVP: Ethos-U85, 1024 MACs.
+# ExecuTorch/PTE models use Dedicated_Sram on the target board.
 NPU_ID="${GESTURE_NPU_ID:-U85}"
-NPU_CONFIG_ID="${GESTURE_NPU_CONFIG_ID:-Z512}"
-NPU_MACS="${GESTURE_NPU_MACS:-512}"
-NPU_MEMORY_MODE="${GESTURE_MEMORY_MODE:-Shared_Sram}"
+NPU_CONFIG_ID="${GESTURE_NPU_CONFIG_ID:-Z1024}"
+NPU_MACS="${GESTURE_NPU_MACS:-1024}"
 NPU_CACHE_SIZE="${GESTURE_NPU_CACHE_SIZE:-}"
-TIMING_ADAPTER_ENABLED="${GESTURE_TIMING_ADAPTER_ENABLED:-ON}"
+TIMING_ADAPTER_ENABLED="${GESTURE_TIMING_ADAPTER_ENABLED:-OFF}"
+CPU_PROFILE_ENABLED="${GESTURE_CPU_PROFILE_ENABLED:-ON}"
 BUILD_JOBS="${BUILD_JOBS:-8}"
+
+if [[ "${ML_FRAMEWORK}" == "ExecuTorch" ]]; then
+    if [[ "${NPU_MEMORY_MODE}" == "Dedicated_Sram" ]]; then
+        NPU_CACHE_SIZE="${GESTURE_NPU_CACHE_SIZE:-393216}"
+    elif [[ "${NPU_MEMORY_MODE}" == "Shared_Sram" && "${GESTURE_ET_TMP_IN_SRAM:-OFF}" == "ON" ]]; then
+        NPU_CACHE_SIZE=0
+        MODEL_PATH="${GESTURE_MODEL_PATH:-${REPO_ROOT}/resources_downloaded/gesture_detection/best_shared_ethos-u85-1024.pte}"
+    else
+        printf 'PTE requires Dedicated_Sram or Shared_Sram with GESTURE_ET_TMP_IN_SRAM=ON.\n' >&2
+        exit 1
+    fi
+fi
 
 if [[ ! -f "${MODEL_PATH}" ]]; then
     printf 'Gesture %s model not found: %s\n' "${MODEL_VARIANT}" "${MODEL_PATH}" >&2
@@ -99,7 +114,7 @@ if [[ "${ML_FRAMEWORK}" == "ExecuTorch" ]]; then
     fi
 fi
 
-printf 'Configuring Gesture %s FVP build\n' "${ML_FRAMEWORK}"
+printf 'Configuring Gesture %s MPS4 board build\n' "${ML_FRAMEWORK}"
 printf '  Variant:         %s\n' "${MODEL_VARIANT}"
 printf '  Build directory: %s\n' "${BUILD_DIR}"
 printf '  Model:           %s\n' "${MODEL_PATH}"
@@ -109,6 +124,7 @@ printf '  Image size:      %s\n' "${IMAGE_SIZE}"
 printf '  Classes:         %s\n' "${NUM_CLASSES}"
 printf '  NPU:             Ethos-%s %s (%s MACs)\n' "${NPU_ID}" "${NPU_CONFIG_ID}" "${NPU_MACS}"
 printf '  Memory mode:     %s\n' "${NPU_MEMORY_MODE}"
+printf '  CPU profiling:   %s\n' "${CPU_PROFILE_ENABLED}"
 printf '  Activation buf:  %s\n' "${ACTIVATION_BUF_SIZE}"
 if [[ "${ML_FRAMEWORK}" == "ExecuTorch" ]]; then
     printf '  ET temp memory:  %s\n' "${ET_TMP_MEM_SIZE}"
@@ -118,8 +134,10 @@ cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" \
     -DTARGET_PLATFORM=mps4 \
     -DTARGET_SUBSYSTEM=sse-320 \
     -DML_FRAMEWORK="${ML_FRAMEWORK}" \
+    -DMLEK_ET_TMP_IN_SRAM="${GESTURE_ET_TMP_IN_SRAM:-OFF}" \
     -DUSE_CASE_BUILD=yolov8_detection \
     -DUSE_SINGLE_INPUT=OFF \
+    -DCPU_PROFILE_ENABLED="${CPU_PROFILE_ENABLED}" \
     -DETHOS_U_NPU_ENABLED=ON \
     -DETHOS_U_NPU_ID="${NPU_ID}" \
     -DETHOSU_TARGET_NPU_CONFIG="ethos-${NPU_ID}-${NPU_MACS}" \
