@@ -6,6 +6,11 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+# ExecuTorch uses a separate CMake build tree; retain the common hardware profile.
+if [[ "${1:-}" == img_class_pte ]]; then
+    shift
+    exec "${SCRIPT_DIR}/build_official_img_class_pte_sse320.sh" "$@"
+fi
 source "${SCRIPT_DIR}/config/official_sse320.sh"
 
 usage()
@@ -14,6 +19,7 @@ usage()
 Usage: scripts/build_official_sse320.sh [--dry-run] [all | USE_CASE ...]
        scripts/build_official_sse320.sh --prepare-models [--dry-run]
        scripts/build_official_sse320.sh --list
+       scripts/build_official_sse320.sh img_class_pte [--prepare-models]
 
 Default: build all nine Arm ML use cases with the shared SSE-320 profile.
 First run --prepare-models to compile the downloaded original TFLite models.
@@ -21,6 +27,7 @@ Environment: BUILD_JOBS (default 8), OFFICIAL_BUILD_DIR (absolute path),
              OFFICIAL_MEMORY_MODE (Dedicated_Sram by default, or Shared_Sram),
              VELA (default resources_downloaded/env/bin/vela).
 Each memory mode has its own default build and model directory.
+img_class_pte is an additional ExecuTorch target, built separately from the TFLM suite.
 See docs/branch_scripts_and_official_tests.md for usage and merge instructions.
 EOF
 }

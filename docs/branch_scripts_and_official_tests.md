@@ -131,18 +131,66 @@ source "$FVP_ROOT/scripts/runtime.sh"
 
 ### 本次验证（2026-09-16）
 
-- 10 个模型文件（KWS_ASR 包含两个模型）全部通过统一 Vela 编译。
-- 9 个应用全部构建成功，生成对应 AXF 和分区 BIN。
+- Dedicated 和 Shared 两种模式各有 10 个模型文件（KWS_ASR 包含两个模型），
+  均通过对应的统一 Vela 编译；两种模式的 9 个应用均生成 AXF 和分区 BIN。
+- Shared 的 ASR 模型在默认无预算限制时需要约 7.1 MiB SRAM；设置统一的
+  1.875 MiB Vela 预算后，Vela 报告 SRAM 需求为 1565.47 KiB。
+  这是编译期估算，不是实测运行内存。
+- 检查全部 18 个 AXF 的符号表：两种模式的 arena 均为 2 MiB，
+  Shared 的 arena 位于 SRAM，Dedicated 的 arena 位于 DDR。
+  新增 Shared 支持后，原 Dedicated 的 10 个模型和 9 个 AXF 内容哈希均未改变。
 - Shell 语法、非法 usecase 拒绝、单目标与全量构建配置一致性检查通过；
   实际 CMake cache 与统一硬件配置一致。
+- 两种模式的目录隔离、模式混用拒绝检查通过。
 - FVP/实板自定义入口经过模拟 CMake 的参数回归检查；未重新构建全部自定义模型。
 - AD 的额外 FVP 冒烟运行在 45 秒内未产生应用串口输出，超时后终止；
   因此未宣称 FVP 运行通过。实板运行和 native 单元测试尚未执行。
 
+## img_class 的 ExecuTorch PTE 补充测试
+
+除了 9 个 TFLM 应用，统一入口还提供独立的 `img_class_pte` 目标。
+它使用官方 MobileNetV2 `IMAGENET1K_V2` 权重（`mobilenet_v2-7ebf99e0.pth`），
+输入是 float32 NCHW `[1,3,224,224]`，输出是 float32 `[1,1000]`。
+默认从 PyTorch 缓存读取权重；可用 `OFFICIAL_PTE_WEIGHTS=/absolute/path/to/weights.pth`
+指定已有权重文件。脚本不自动下载权重。
+
+```bash
+# Dedicated SRAM
+./scripts/build_official_sse320.sh img_class_pte --prepare-models
+./scripts/build_official_sse320.sh img_class_pte
+
+# Shared SRAM
+OFFICIAL_MEMORY_MODE=Shared_Sram ./scripts/build_official_sse320.sh img_class_pte --prepare-models
+OFFICIAL_MEMORY_MODE=Shared_Sram ./scripts/build_official_sse320.sh img_class_pte
+```
+
+默认输出目录分别是 `build-official-sse320-img-class-pte/` 和
+`build-official-sse320-shared-img-class-pte/`，应用为 `bin/mlek_img_class.axf`。
+PTE 与 JSON 导出报告在对应的 `models/` 目录。
+可用 `OFFICIAL_PTE_BUILD_DIR` 指定独立绝对路径，用 `OFFICIAL_PTE_PYTHON` 指定
+安装了当前仓库 ExecuTorch 和 torchvision 的 Python 环境。
+
+硬件配置复用 `scripts/config/official_sse320.sh`；两种 PTE 都分配 2 MiB arena
+及额外的 2 MiB ExecuTorch 临时池。Shared 临时池通过现有 `MLEK_ET_TMP_IN_SRAM=ON`
+放在 SRAM；Dedicated 使用平台的 DDR 临时池。PTE 的临时池是框架额外内存，
+不能将其总内存占用视为与 TFLM 相同。
+
+导出使用仓库的 4 张 BMP 样本校准，记录 FP32/PT2E 的 top-1，并检查
+输入输出布局、Ethos-U delegate 和计划内存预算。这是构建及格式检查，
+不是 ImageNet 精度评测，也不代表板上推理验证通过。
+`img_class_pte` 单独构建；不带参数的原入口仍构建 9 个 TFLM 应用。
+
+本次两种模式均已导出并构建，计划缓冲区都是 752640 字节；
+delegate scratch 为 Dedicated 953344 字节、Shared 1510416 字节。
+4 张校准图片的 FP32/PT2E top-1 均一致。
+Shared AXF 的临时池位于 `0x31000000`，arena 位于 `0x31200000`，各 2 MiB；
+Dedicated 的 arena 位于 DDR，临时池使用平台配置的 DDR 地址。
+未执行 PTE 的 FVP 或实板运行验证。
+
 ## 首次同步和后续合并
 
-本次文件修改在 `feature/yolov8-real-board` 工作区中，尚未提交或移动其他分支。
-先检查、提交这次拆分（DCO sign-off 必须保留）：
+脚本拆分从 `feature/yolov8-real-board` 发起。若尚未提交，
+先检查、提交这次拆分（DCO sign-off 必须保留）；已经提交则直接进入同步步骤：
 
 ```bash
 git diff
@@ -151,6 +199,7 @@ git add scripts/build_gesture_fvp320.sh scripts/run_gesture_fvp320.sh \
     scripts/build_gesture_mps4.sh scripts/run_gesture_mps4_on_fvp.sh \
     scripts/build_yolov8_mps4.sh scripts/run_yolov8_mps4_on_fvp.sh \
     scripts/build_official_sse320.sh scripts/config/official_sse320.sh \
+    scripts/build_official_img_class_pte_sse320.sh scripts/export_img_class_pte.py \
     docs/branch_scripts_and_official_tests.md
 git commit -s -m "Separate FVP and board scripts and add uniform official builds"
 ```
