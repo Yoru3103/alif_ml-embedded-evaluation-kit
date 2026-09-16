@@ -14,12 +14,12 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 MODEL_VARIANT="${GESTURE_MODEL_VARIANT:-tflite}"
 case "${MODEL_VARIANT}" in
 tflite)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-gesture-tflite"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-gesture-tflite"
     RUN_NAME=gesture_tflite
     ML_FRAMEWORK=TensorFlowLiteMicro
     ;;
 pte)
-    BUILD_DIR="${REPO_ROOT}/build-fvp320-gesture-pte"
+    BUILD_DIR="${REPO_ROOT}/build-mps4-gesture-pte"
     RUN_NAME=gesture_pte
     ML_FRAMEWORK=ExecuTorch
     ;;
@@ -31,7 +31,7 @@ pte)
 esac
 
 BUILD_DIR="${GESTURE_BUILD_DIR:-${BUILD_DIR}}"
-NPU_MACS="${GESTURE_NPU_MACS:-512}"
+NPU_MACS="${GESTURE_NPU_MACS:-1024}"
 
 FVP_ROOT="${FVP_ROOT:-/home/xx/FVP_Corstone_SSE-320}"
 FVP_RUNTIME="${FVP_ROOT}/scripts/runtime.sh"

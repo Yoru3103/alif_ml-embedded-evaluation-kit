@@ -29,7 +29,9 @@ TensorIface、EtTensor、YOLO 预处理、后处理和 UseCaseHandler 均已恢�
 原始入口只有 TFLite，因此这些框架接入仍然必要。
 
 旧 `best_clean_*` 和 `best_contiguous_*` 是拆分输出 PTE，不能继续配合原始后处理。
-现在使用 `best_mlek_ethos-u85-512.pte` 并重新构建。
+当前 MPS4 SSE-320 板端使用已生成的
+`best_dedicated_ethos-u85-1024.pte`，并采用 `Dedicated_Sram` 和 393216
+字节 arena cache。只有模型或 NPU 编译配置发生变化时才需要重新导出 PTE。
 
 ## 导出、构建和运行
 
@@ -43,11 +45,12 @@ python scripts/export_yolo_pte.py \
   --calibration-limit 128 \
   --validation-dir resources/gesture_detection/samples \
   --validation-limit 8 \
-  --target ethos-u85-512 \
+  --target ethos-u85-1024 \
   --vela-config scripts/vela/ensemble_vela.ini \
-  --system-config Ethos_U85_SRAM_MRAM \
-  --memory-mode Shared_Sram \
-  --output resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte
+  --system-config Ethos_U85_SRAM_OSPI \
+  --memory-mode Dedicated_Sram \
+  --arena-cache-size 393216 \
+  --output resources_downloaded/gesture_detection/best_dedicated_ethos-u85-1024.pte
 
 GESTURE_MODEL_VARIANT=pte ./scripts/build_gesture_fvp320.sh
 GESTURE_MODEL_VARIANT=pte ./scripts/run_gesture_fvp320.sh

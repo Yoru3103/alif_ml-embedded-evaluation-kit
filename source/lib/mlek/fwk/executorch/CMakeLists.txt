@@ -84,7 +84,7 @@ target_compile_definitions(${ML_FWK_ET_TARGET} INTERFACE
 set(ML_FWK_TMP_MEM_SIZE "0x01000000" CACHE STRING "Temporary memory allocation size")
 
 # If the platform mandates a temporary memory location, enforce it here.
-if (DEFINED ML_FWK_TMP_MEM_BASE)
+if (DEFINED ML_FWK_TMP_MEM_BASE AND NOT MLEK_ET_TMP_IN_SRAM)
     target_compile_definitions(${ML_FWK_ET_TARGET} PRIVATE
         ML_FWK_TMP_MEM_BASE=${ML_FWK_TMP_MEM_BASE})
 endif()

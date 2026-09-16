@@ -46,12 +46,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--diagnose-only", action="store_true",
                         help="Check float and PT2E results without compiling a PTE")
     npu = parser.add_argument_group("NPU / Vela")
-    npu.add_argument("--target", default="ethos-u85-512")
+    npu.add_argument("--target", default="ethos-u85-1024")
     npu.add_argument("--vela-config", type=Path, default=ROOT / "scripts/vela/ensemble_vela.ini")
-    npu.add_argument("--system-config", default="Ethos_U85_SRAM_MRAM")
-    npu.add_argument("--memory-mode", default="Shared_Sram",
+    npu.add_argument("--system-config", default="Ethos_U85_SRAM_OSPI",
+                     help="System_Config with a writable arena port for Dedicated_Sram")
+    npu.add_argument("--memory-mode", default="Dedicated_Sram",
                      help="Memory_Mode section in the Vela INI, including custom modes")
-    npu.add_argument("--arena-cache-size", type=int,
+    npu.add_argument("--arena-cache-size", type=int, default=393216,
                      help="Vela arena cache bytes; meaningful for cache-based memory modes")
     npu.add_argument("--extra-flag", action="append", default=[],
                      help="Repeat as --extra-flag=--verbose-performance")

@@ -55,7 +55,7 @@ if (${ML_FRAMEWORK} STREQUAL "TensorFlowLiteMicro")
     set(DEFAULT_ACTIVATION_BUF_SZ 0x00200000)
 elseif (${ML_FRAMEWORK} STREQUAL "ExecuTorch")
     set(DEFAULT_MODEL_PATH
-        ${CMAKE_SOURCE_DIR}/resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte)
+        ${CMAKE_SOURCE_DIR}/resources_downloaded/gesture_detection/best_dedicated_ethos-u85-1024.pte)
     set(DEFAULT_LABELS_PATH
         ${CMAKE_SOURCE_DIR}/resources/gesture_detection/labels.txt)
     set(DEFAULT_IMAGE_SIZE 320)

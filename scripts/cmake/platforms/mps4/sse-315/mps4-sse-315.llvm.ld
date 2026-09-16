@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -36,6 +36,15 @@ MEMORY
     DDR_dynamic_ifm   (rx) : ORIGIN = 0x92000000, LENGTH = 0x01000000
     DDR_dynamic_ofm   (rx) : ORIGIN = 0x93000000, LENGTH = 0x01000000
 }
+
+__mlek_bram_start  = ORIGIN(BRAM);
+__mlek_bram_limit  = ORIGIN(BRAM) + LENGTH(BRAM);
+__mlek_sram_start  = ORIGIN(SRAM);
+__mlek_sram_limit  = ORIGIN(SRAM) + LENGTH(SRAM);
+__mlek_ddr_start   = ORIGIN(DDR);
+__mlek_ddr_limit   = ORIGIN(DDR) + LENGTH(DDR);
+__mlek_dtcm_start  = ORIGIN(DTCM);
+__mlek_dtcm_limit  = ORIGIN(DTCM) + LENGTH(DTCM);
 
 SECTIONS
 {
@@ -177,6 +186,7 @@ SECTIONS
         *(.bss.NoInit.activation_buf_sram)
         . = ALIGN(16);
     } > SRAM AT > SRAM
+    __mlek_sram_end = .;
 
     .bss.at_bram (NOLOAD) :
     {
@@ -208,6 +218,7 @@ SECTIONS
     } > BRAM
 
     PROVIDE(__head_size = __heap_end - __heap_start);
+    __mlek_bram_end = __heap_end;
 
     /* Stack */
     .stack (ORIGIN(DTCM) + LENGTH(DTCM) - __STACK_SIZE) (NOLOAD) :
@@ -220,6 +231,7 @@ SECTIONS
     } > DTCM
     ASSERT(__STACK_SIZE <= LENGTH(DTCM), "DTCM overflow")
     PROVIDE(__stack_size = __STACK_SIZE);
+    __mlek_dtcm_end = __stack;
 
     .ddr.at_ddr :
     {
@@ -241,4 +253,5 @@ SECTIONS
         *(activation_buf_dram)
         . = ALIGN (16);
     } > DDR AT > DDR
+    __mlek_ddr_end = .;
 } /* SECTIONS */

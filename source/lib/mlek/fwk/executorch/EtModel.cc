@@ -22,6 +22,7 @@
 
 #include <executorch/schema/program_generated.h>
 #include <cctype>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -31,6 +32,26 @@
 #endif /* ML_FWK_TMP_MEM_SIZE */
 
 constexpr size_t sTmpAllocationPoolSz = ML_FWK_TMP_MEM_SIZE; /**< Temp allocation pool size. */
+
+/*
+ * The platform linker scripts expose these symbols when they support a
+ * link-time memory map.  Weak references keep the framework portable: native
+ * builds and platforms without the symbols simply omit the region summary.
+ */
+extern "C" {
+extern const uint8_t __mlek_bram_start[] __attribute__((weak));
+extern const uint8_t __mlek_bram_end[] __attribute__((weak));
+extern const uint8_t __mlek_bram_limit[] __attribute__((weak));
+extern const uint8_t __mlek_sram_start[] __attribute__((weak));
+extern const uint8_t __mlek_sram_end[] __attribute__((weak));
+extern const uint8_t __mlek_sram_limit[] __attribute__((weak));
+extern const uint8_t __mlek_ddr_start[] __attribute__((weak));
+extern const uint8_t __mlek_ddr_end[] __attribute__((weak));
+extern const uint8_t __mlek_ddr_limit[] __attribute__((weak));
+extern const uint8_t __mlek_dtcm_start[] __attribute__((weak));
+extern const uint8_t __mlek_dtcm_end[] __attribute__((weak));
+extern const uint8_t __mlek_dtcm_limit[] __attribute__((weak));
+}
 
 #if !(defined(ML_FWK_TMP_MEM_BASE))
 static uint8_t __attribute__((aligned(16), section(".bss.NoInit.temp_buf_sram")))
@@ -55,6 +76,56 @@ bool ContainsSubstring(const char* str, const char* substr)
         return false;
     }
     return std::strstr(str, substr) != nullptr;
+}
+
+struct LinkerMemoryRegion {
+    const char* name;
+    const uint8_t* start;
+    const uint8_t* end;
+    const uint8_t* limit;
+};
+
+/**
+ * @brief   Log the link-time reservation and remaining capacity of each
+ *          platform memory region.
+ *
+ * The end symbol includes all sections assigned to the region, including
+ * fixed buffers and the statically reserved heap/stack.  Runtime allocator
+ * high-water marks are reported separately by LogMemoryUsage().
+ */
+void LogLinkerMemoryRegions()
+{
+    const LinkerMemoryRegion regions[] = {
+        {"BRAM", __mlek_bram_start, __mlek_bram_end, __mlek_bram_limit},
+        {"SRAM", __mlek_sram_start, __mlek_sram_end, __mlek_sram_limit},
+        {"DDR", __mlek_ddr_start, __mlek_ddr_end, __mlek_ddr_limit},
+        {"DTCM", __mlek_dtcm_start, __mlek_dtcm_end, __mlek_dtcm_limit},
+    };
+
+    bool reported = false;
+    for (const auto& region : regions) {
+        const uintptr_t start = reinterpret_cast<uintptr_t>(region.start);
+        const uintptr_t end   = reinterpret_cast<uintptr_t>(region.end);
+        const uintptr_t limit = reinterpret_cast<uintptr_t>(region.limit);
+        if (start == 0 || end < start || limit <= start) {
+            continue;
+        }
+
+        const size_t capacity  = limit - start;
+        const size_t reserved  = end - start;
+        const size_t remaining = limit > end ? limit - end : 0;
+        info("%s region: base=%p Capacity=%zu UsedPeak=%zu Remaining=%zu bytes\n",
+             region.name,
+             reinterpret_cast<const void*>(start),
+             capacity,
+             reserved,
+             remaining);
+        reported = true;
+    }
+
+    if (!reported) {
+        info("Linker memory regions: unavailable on this platform\n");
+    }
 }
 
 /**
@@ -324,6 +395,7 @@ void EtModel::LogInterpreterInfo()
 
 void EtModel::LogMemoryUsage() const
 {
+    info("Memory usage snapshot:\n");
     info("Model storage: base=%p bytes=%zu (PTE weights and command stream)\n",
          this->m_modelBuffer.data,
          this->m_modelBuffer.size);
@@ -334,30 +406,38 @@ void EtModel::LogMemoryUsage() const
     if (method) {
         reserved += method->size();
         peakSum += method->UsedSizePeak();
+        const size_t capacity  = method->size();
+        const size_t used      = method->UsedSizeCurrent();
+        const size_t peak      = method->UsedSizePeak();
+        const size_t freePeak  = capacity > peak ? capacity - peak : 0;
         info("Method pool: base=%p (planned tensors, input copies, metadata)\n",
              method->base_address());
-        info("  Used=%zu Peak=%zu Capacity=%u Free=%zu bytes\n",
-             method->UsedSizeCurrent(),
-             method->UsedSizePeak(),
-             static_cast<unsigned>(method->size()),
-             method->FreeSize());
+        info("  Used=%zu Peak=%zu Capacity=%zu Free=%zu FreeAtPeak=%zu bytes\n",
+             used, peak, capacity, method->FreeSize(), freePeak);
     }
     if (temporary) {
         reserved += temporary->size();
         peakSum += temporary->UsedSizePeak();
+        const size_t capacity  = temporary->size();
+        const size_t used      = temporary->UsedSizeCurrent();
+        const size_t peak      = temporary->UsedSizePeak();
+        const size_t freePeak  = capacity > peak ? capacity - peak : 0;
         info("Temporary pool: base=%p (includes delegate scratch)\n", temporary->base_address());
-        info("  Used=%zu Peak=%zu Capacity=%u Free=%zu bytes\n",
-             temporary->UsedSizeCurrent(),
-             temporary->UsedSizePeak(),
-             static_cast<unsigned>(temporary->size()),
-             temporary->FreeSize());
+        info("  Used=%zu Peak=%zu Capacity=%zu Free=%zu FreeAtPeak=%zu bytes\n",
+             used, peak, capacity, temporary->FreeSize(), freePeak);
     }
     info("Runtime pools: reserved=%zu; sum of pool peaks=%zu bytes\n", reserved, peakSum);
     info("PTE + reserved pools=%zu; PTE + pool peaks=%zu bytes\n",
          this->m_modelBuffer.size + reserved,
          this->m_modelBuffer.size + peakSum);
     info("Pool peaks may occur at different times; planned tensors/scratch are included.\n");
-    info("Excludes code, heap, stack, display/sample buffers and separate NPU cache.\n");
+    info("PTE + pool totals exclude code, heap, stack, display/sample buffers and "
+         "separate NPU cache.\n");
+    info("The linker region summary below includes fixed code/data, heap, stack, "
+         "cache and buffers.\n");
+    info("Region UsedPeak is link-time occupied space; "
+         "pool FreeAtPeak is the runtime high-water remainder.\n");
+    LogLinkerMemoryRegions();
 }
 
 void EtModel::LogOperatorInfo()

@@ -12,7 +12,7 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 # User configuration: select the build produced by the build script.
 #   best_int8      - TensorFlow Lite Micro model, 256 MACs
 #   best_int8_new  - TensorFlow Lite Micro model, 512 MACs
-#   gesture_pte    - ExecuTorch PTE model, 512 MACs
+#   gesture_pte    - ExecuTorch PTE model, 1024 MACs
 # -----------------------------------------------------------------------------
 MODEL_VARIANT="${YOLOV8_MODEL_VARIANT:-best_int8}"
 case "${MODEL_VARIANT}" in
@@ -31,7 +31,7 @@ best_int8_new)
 gesture_pte)
     BUILD_DIR="${REPO_ROOT}/build-fvp320-yolov8-gesture-pte"
     RUN_NAME=yolov8_gesture_pte
-    NPU_MACS=512
+    NPU_MACS=1024
     ML_FRAMEWORK=ExecuTorch
     ;;
 *)

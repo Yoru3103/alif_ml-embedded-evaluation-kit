@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2024-2025 Arm Limited and/or
+ * SPDX-FileCopyrightText: Copyright 2024-2026 Arm Limited and/or
  * its affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,7 +26,7 @@ MEMORY
   BOOT  (rx)  : ORIGIN = 0x11000000, LENGTH = 0x00010000
   BRAM  (rwx) : ORIGIN = 0x12000000, LENGTH = 0x00200000
   DTCM  (rwx) : ORIGIN = 0x30000000, LENGTH = 0x00008000
-  SRAM  (rwx) : ORIGIN = 0x31000000, LENGTH = 0x00400000
+  SRAM  (rwx) : ORIGIN = 0x31000000, LENGTH = 0x00600000
   DDR   (rwx) : ORIGIN = 0x70000000, LENGTH = 0x02000000
 
   /* Dynamic load regions declared for use by FVP only
@@ -36,6 +36,15 @@ MEMORY
   DDR_dynamic_ifm   (rx) : ORIGIN = 0x74000000, LENGTH = 0x01000000
   DDR_dynamic_ofm   (rx) : ORIGIN = 0x75000000, LENGTH = 0x01000000
 }
+
+__mlek_bram_start  = ORIGIN(BRAM);
+__mlek_bram_limit  = ORIGIN(BRAM) + LENGTH(BRAM);
+__mlek_sram_start  = ORIGIN(SRAM);
+__mlek_sram_limit  = ORIGIN(SRAM) + LENGTH(SRAM);
+__mlek_ddr_start   = ORIGIN(DDR);
+__mlek_ddr_limit   = ORIGIN(DDR) + LENGTH(DDR);
+__mlek_dtcm_start  = ORIGIN(DTCM);
+__mlek_dtcm_limit  = ORIGIN(DTCM) + LENGTH(DTCM);
 
 /* Linker script to place sections and symbol values. Should be used together
  * with other linker script that defines memory regions ITCM and RAM.
@@ -160,6 +169,9 @@ SECTIONS
   .sram :
   {
     . = ALIGN(16);
+    /* NPU scratch stays in VM0; CPU method allocations may extend into VM2. */
+    *(.bss.NoInit.temp_buf_sram)
+    . = ALIGN(16);
     /* Cache area (if used) */
     *(.bss.NoInit.ethos_u_cache)
     . = ALIGN (16);
@@ -167,6 +179,7 @@ SECTIONS
     *(.bss.NoInit.activation_buf_sram)
     . = ALIGN(16);
   } > SRAM AT > SRAM
+  __mlek_sram_end = .;
 
   .ddr.at_ddr :
   {
@@ -195,6 +208,7 @@ SECTIONS
     *(.bss.NoInit.activation_buf_dram)
     . = ALIGN(16);
   } > DDR
+  __mlek_ddr_end = .;
 
   .bss :
   {
@@ -229,6 +243,7 @@ SECTIONS
   } > BRAM
 
   __bram_total = ALIGN(4);
+  __mlek_bram_end = __bram_total;
 
   ASSERT( __bram_total < (ORIGIN(BRAM) + LENGTH(BRAM)), "BRAM overflow")
 
@@ -241,6 +256,7 @@ SECTIONS
     __StackTop = .;
   } > DTCM
   PROVIDE(__stack = __StackTop);
+  __mlek_dtcm_end = __StackTop;
   ASSERT(__STACK_SIZE <= LENGTH(DTCM), "DTCM overflow")
 
 }

@@ -238,10 +238,11 @@ The original MLEK preprocessor and single-output postprocessor are used unchange
 Do not apply sigmoid again or configure score scaling in firmware.
 
 The previous split-output PTE files (`best_clean_*`, `best_contiguous_*`) are not
-compatible with the restored single-output path. Export/use `best_mlek_*` and
-rebuild the application. The necessary ExecuTorch framework selection, portable
-operator linkage and memory settings remain; the original entry point only
-supported TFLite. Runtime memory reporting is independent of YOLO output adaptation.
+compatible with the restored single-output path. Use the pre-generated
+`best_dedicated_ethos-u85-1024.pte` and rebuild the application. The necessary
+ExecuTorch framework selection, portable operator linkage and memory settings remain;
+the original entry point only supported TFLite. Runtime memory reporting is
+independent of YOLO output adaptation.
 
 ### Export and check accuracy
 
@@ -257,11 +258,12 @@ python scripts/export_yolo_pte.py \
     --validation-limit 8 \
     --image-size 320 \
     --preprocessing mlek-crop \
-    --target ethos-u85-512 \
+    --target ethos-u85-1024 \
     --vela-config scripts/vela/ensemble_vela.ini \
-    --system-config Ethos_U85_SRAM_MRAM \
-    --memory-mode Shared_Sram \
-    --output resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte
+    --system-config Ethos_U85_SRAM_OSPI \
+    --memory-mode Dedicated_Sram \
+    --arena-cache-size 393216 \
+    --output resources_downloaded/gesture_detection/best_dedicated_ethos-u85-1024.pte
 ```
 
 Calibration images are shuffled reproducibly (`--seed 0` by default).
@@ -313,7 +315,7 @@ configuration. Set `YOLOV8_NPU_CONFIG_ID` and `YOLOV8_NPU_MACS` consistently wit
 
 ```sh
 GESTURE_MODEL_VARIANT=pte \
-GESTURE_MODEL_PATH="$PWD/resources_downloaded/gesture_detection/best_mlek_ethos-u85-512.pte" \
+GESTURE_MODEL_PATH="$PWD/resources_downloaded/gesture_detection/best_dedicated_ethos-u85-1024.pte" \
 ./scripts/build_gesture_fvp320.sh
 
 GESTURE_MODEL_VARIANT=pte ./scripts/run_gesture_fvp320.sh
@@ -330,6 +332,7 @@ GESTURE_NPU_CONFIG_ID
 GESTURE_NPU_MACS
 GESTURE_MEMORY_MODE
 GESTURE_NPU_CACHE_SIZE
+GESTURE_CPU_PROFILE_ENABLED
 GESTURE_ACTIVATION_BUF_SIZE
 GESTURE_ET_TMP_MEM_SIZE
 GESTURE_ET_TMP_MEM_BASE
@@ -340,22 +343,26 @@ GESTURE_NUM_CLASSES
 ### Memory report and board deployment
 
 Runtime logs print model storage address/size and each allocator's address,
-capacity, current usage and peak usage. Totals distinguish reserved pool capacity
-from the sum of measured pool peaks. They also show PTE storage plus each total.
-Pool peaks can occur at different times; these are not whole-firmware RAM totals.
+capacity, current usage, peak usage and `FreeAtPeak`. Totals distinguish reserved
+pool capacity from the sum of measured pool peaks. On MPS4, the logs also print
+the BRAM, SRAM, DDR and DTCM region capacity, link-time `UsedPeak` and remaining
+space. Pool peaks can occur at different times; the pool total is not a whole-
+firmware RAM total.
 
-For this MPS4 configuration, the method pool is in SRAM at `0x31000000`, with
-3 MiB reserved. The temporary pool is in DDR at `0x94000000`, with 16 MiB reserved.
+For the current MPS4 gesture configuration (`Dedicated_Sram`, U85-1024), the
+method pool is in DDR at `0x70409b30`, with 3 MiB reserved. The temporary pool is
+in the dynamic DDR window at `0x76000000`, with 2 MiB reserved.
 The PTE is also placed in DDR; its address depends on the linked image resources.
 A Vela system name containing MRAM does not place the firmware model in MRAM.
 Use the linker map and actual addresses to determine physical placement.
 
 Planned tensors and additional input copies are already in the method pool.
 Delegate scratch is included in the temporary pool for this build; do not add
-Vela's SRAM figure again. Code, general heap, stack, display/sample buffers and any
-separate NPU cache remain outside these totals. Reduce pool reservations only after
-measuring representative inputs and checking hardware access, linker layout and
-headroom. The exporter cannot determine a universal physical RAM total on its own.
+Vela's SRAM figure again. Region `UsedPeak` includes fixed code/data, the reserved
+heap/stack, cache and linked buffers; `FreeAtPeak` is the allocator high-water
+remainder. Reduce pool reservations only after measuring representative inputs and
+checking hardware access, linker layout and headroom. The exporter cannot determine
+a universal physical RAM total on its own.
 
 The single-output PTE passed the 2026-09-14 FVP run with the original processing
 code: call 0.940463, four 0.982935, like 0.989003 and ok 0.928328, one detection per

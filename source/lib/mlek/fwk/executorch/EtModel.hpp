@@ -80,7 +80,7 @@ public:
     void LogInterpreterInfo() override;
 
     /** @brief Logs overall runtime memory usage to stdout. */
-    void LogMemoryUsage() const;
+    void LogMemoryUsage() const override;
 
     /** @brief Logs operators from the ExecuTorch program to stdout. */
     void LogOperatorInfo();

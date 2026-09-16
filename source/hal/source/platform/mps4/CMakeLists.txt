@@ -68,6 +68,15 @@ set(DYNAMIC_OFM_SIZE    "0x01000000" CACHE STRING "Size of the space reserved fo
 math(EXPR TMP_BASE      "${DYNAMIC_OFM_BASE} + ${DYNAMIC_OFM_SIZE}" OUTPUT_FORMAT HEXADECIMAL)
 set(ML_FWK_TMP_MEM_BASE "${TMP_BASE}" CACHE STRING "Region used by ML framework for any temporary allocations" FORCE)
 set(ML_FWK_TMP_MEM_SIZE "0x02000000" CACHE STRING "Buffer size for ML framework's temporary allocations")
+option(MLEK_ET_TMP_IN_SRAM "Experimental SSE-320 ExecuTorch scratch placement in SRAM" OFF)
+if (MLEK_ET_TMP_IN_SRAM)
+    if (NOT ML_FRAMEWORK STREQUAL "ExecuTorch" OR NOT TARGET_SUBSYSTEM STREQUAL "sse-320"
+        OR NOT ETHOS_U_NPU_ID STREQUAL "U85"
+        OR NOT ETHOS_U_NPU_MEMORY_MODE STREQUAL "Shared_Sram")
+        message(FATAL_ERROR "SRAM tmp experiment requires SSE-320/U85/ExecuTorch/Shared_Sram")
+    endif()
+    message(STATUS "Experimental SRAM tmp placement; NPU scratch region 1 uses AXI0")
+endif()
 
 # HDLCD parameters
 math(EXPR FB_BASE       "${ML_FWK_TMP_MEM_BASE} + ${ML_FWK_TMP_MEM_SIZE}" OUTPUT_FORMAT HEXADECIMAL)

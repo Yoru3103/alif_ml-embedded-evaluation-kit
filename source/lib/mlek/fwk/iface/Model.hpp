@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Arm Limited and/or its affiliates
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Arm Limited and/or its affiliates
  * <open-source-office@arm.com> SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +70,9 @@ public:
 
     /** @brief  Logs the interpreter information to stdout. */
     virtual void LogInterpreterInfo() = 0;
+
+    /** @brief  Logs framework-specific memory usage, when available. */
+    virtual void LogMemoryUsage() const {}
 
     /** @brief      Initialise the model class object.
      *  @return     true if initialisation succeeds, false otherwise.

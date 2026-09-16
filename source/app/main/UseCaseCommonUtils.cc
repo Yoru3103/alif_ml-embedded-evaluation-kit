@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2025 Arm Limited and/or its
+ * SPDX-FileCopyrightText: Copyright 2021-2022, 2024-2026 Arm Limited and/or its
  * affiliates <open-source-office@arm.com>
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -79,6 +79,7 @@ namespace app {
         BOARD_LED1_BLUE_Control(BOARD_LED_STATE_TOGGLE);
 #endif
         profiler.StopProfiling();
+        model.LogMemoryUsage();
 
         return runInf;
     }
